@@ -72,7 +72,7 @@
 
                 <el-drawer
                   v-model="isAskPanelVisible"
-                  direction="rtl"
+                  direction="ltr"
                   :with-header="true"
                   :modal="false"
                   :size="drawerWidth"
@@ -89,10 +89,14 @@
                   <div class="ask-panel">
                     <div class="ask-result-display" ref="chatDisplay">
                         <div v-for="(message, index) in chatHistory" :key="index" :class="['chat-message', message.type]">
-                            <el-avatar v-if="message.type === 'ai'" :icon="Service" class="chat-avatar" />
-                            <div v-if="message.type === 'ai'" class="message-content" v-html="renderMarkdown(message.content)"></div>
-                            <div v-else class="message-content">{{ message.content }}</div>
-                            <el-avatar v-if="message.type === 'user'" :icon="User" class="chat-avatar" />
+                            <template v-if="message.type === 'ai'">
+                                <el-avatar :icon="Service" class="chat-avatar" />
+                                <div class="message-content markdown-body" v-html="renderMarkdown(message.content)"></div>
+                            </template>
+                            <template v-else>
+                                <el-avatar :icon="User" class="chat-avatar" />
+                                <div class="message-content">{{ message.content }}</div>
+                            </template>
                         </div>
                         <div v-if="isAsking" class="chat-message ai">
                             <el-avatar :icon="Service" class="chat-avatar" />
@@ -101,7 +105,7 @@
                                 <span>思考中...</span>
                             </div>
                         </div>
-                         <el-empty v-if="!chatHistory.length && !isAsking" description="你好！对于这个视频，有什么可以帮你的吗？"></el-empty>
+                        <el-empty v-if="!chatHistory.length && !isAsking" description="你好！对于这个视频，有什么可以帮你的吗？"></el-empty>
                     </div>
                     <div class="ask-input-area">
                       <el-input
@@ -225,38 +229,62 @@ const chatHistory = ref([]);
 const includeVideoContext = ref(true);
 const chatDisplay = ref(null);
 const drawerWidth = ref('400px');
+const isResizing = ref(false);
+const startPos = ref({ x: 0, y: 0 });
+const startWidth = ref(400);
 
 // --- 清除聊天记录 ---
 const clearChatHistory = () => {
     chatHistory.value = [];
 };
 
-// --- Markdown 解析 ---
-const renderMarkdown = (text) => {
-    const rawMarkup = marked(text || '');
-    return DOMPurify.sanitize(rawMarkup);
+// 配置marked选项
+marked.setOptions({
+  gfm: true, // 启用GitHub风格的Markdown
+  breaks: true, // 启用换行符
+  sanitize: false, // 允许HTML标签
+  highlight: function (code, lang) {
+    // 这里可以集成代码高亮库，如Prism.js或highlight.js
+    return code;
+  }
+});
+
+// 添加Markdown渲染函数
+const renderMarkdown = (content) => {
+  try {
+    return DOMPurify.sanitize(marked(content || ''));
+  } catch (error) {
+    console.error('Markdown rendering error:', error);
+    return content;
+  }
 };
 
 // --- 面板缩放 ---
+const handleResize = (e) => {
+  if (!isResizing.value) return;
+  
+  const deltaX = e.clientX - startPos.value.x;
+  let newWidth = startWidth.value + deltaX;
+  
+  // 限制宽度范围
+  newWidth = Math.max(300, Math.min(800, newWidth));
+  drawerWidth.value = `${newWidth}px`;
+};
+
 const initResize = (e) => {
-    e.preventDefault();
-    const startX = e.clientX;
-    const startWidth = parseInt(drawerWidth.value, 10);
+  e.preventDefault();
+  isResizing.value = true;
+  startPos.value = { x: e.clientX, y: e.clientY };
+  startWidth.value = parseInt(drawerWidth.value);
+  
+  document.addEventListener('mousemove', handleResize);
+  document.addEventListener('mouseup', stopResize);
+};
 
-    const doDrag = (dragEvent) => {
-        const newWidth = startWidth - (dragEvent.clientX - startX);
-        if (newWidth > 300 && newWidth < 900) { // 设置最小和最大宽度
-            drawerWidth.value = newWidth + 'px';
-        }
-    };
-
-    const stopDrag = () => {
-        document.removeEventListener('mousemove', doDrag);
-        document.removeEventListener('mouseup', stopDrag);
-    };
-
-    document.addEventListener('mousemove', doDrag);
-    document.addEventListener('mouseup', stopDrag);
+const stopResize = () => {
+  isResizing.value = false;
+  document.removeEventListener('mousemove', handleResize);
+  document.removeEventListener('mouseup', stopResize);
 };
 
 const scrollToBottom = () => {
@@ -463,30 +491,47 @@ const goBack = () => {
   border-radius: 4px;
 }
 .chat-message {
+  margin-bottom: 20px;
+  max-width: 85%;
+  word-break: break-word;
   display: flex;
-  margin-bottom: 15px;
   align-items: flex-start;
+  position: relative;
+  background: transparent;
+}
+.chat-avatar {
+  flex-shrink: 0;
+  margin: 0 8px;
 }
 .chat-message.user {
-  justify-content: flex-end;
+  margin-left: auto;
+  flex-direction: row-reverse;
+  background: transparent;
 }
 .chat-message.ai {
-  justify-content: flex-start;
+  margin-right: auto;
+  flex-direction: row;
+  background: transparent;
 }
 .message-content {
-  max-width: 100%; /* 让内容撑满容器以便代码块等正确显示 */
-  padding: 8px 12px;
-  border-radius: 10px;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 100%;
 }
 .chat-message.user .message-content {
-  background-color: #409eff;
-  color: #fff;
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  color: white;
+  border-radius: 12px 12px 2px 12px;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
 }
 .chat-message.ai .message-content {
-  background-color: #e9e9eb;
-  color: #303133;
+  background: white;
+  color: #1F2937;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border-radius: 12px 12px 12px 2px;
+  border: 1px solid #E5E7EB;
 }
 .ask-input-area {
   padding-top: 15px;
@@ -505,17 +550,25 @@ const goBack = () => {
     margin-right: 5px;
 }
 .ask-drawer {
-  position: relative; /* 为了定位缩放把手 */
-  box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+  position: relative;
+  box-shadow: 5px 0 15px rgba(0,0,0,0.1);
 }
 .resize-handle {
-    position: absolute;
-    top: 0;
-    left: -5px; /* RTL模式下在左边 */
-    width: 10px;
-    height: 100%;
-    cursor: col-resize;
-    z-index: 100;
+  position: absolute;
+  top: 0;
+  right: -5px;
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 100;
+  background: transparent;
+  transition: background-color 0.2s;
+}
+.resize-handle:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+.resize-handle:active {
+  background: rgba(0, 0, 0, 0.2);
 }
 .drawer-header {
   display: flex;
@@ -523,12 +576,132 @@ const goBack = () => {
   align-items: center;
   width: 100%;
 }
-.chat-avatar {
-    flex-shrink: 0;
-    margin-right: 10px;
+
+/* Markdown样式 */
+.markdown-body {
+  font-size: 14px;
+  line-height: 1.6;
+  word-wrap: break-word;
 }
-.chat-message.user .chat-avatar {
-    margin-right: 0;
-    margin-left: 10px;
+
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3),
+.markdown-body :deep(h4),
+.markdown-body :deep(h5),
+.markdown-body :deep(h6) {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.markdown-body :deep(h1) {
+  font-size: 1.5em;
+}
+
+.markdown-body :deep(h2) {
+  font-size: 1.3em;
+}
+
+.markdown-body :deep(p) {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.markdown-body :deep(a) {
+  color: #0366d6;
+  text-decoration: none;
+}
+
+.markdown-body :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.markdown-body :deep(code) {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(27,31,35,0.05);
+  border-radius: 3px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.markdown-body :deep(pre) {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: #f6f8fa;
+  border-radius: 3px;
+  margin-bottom: 16px;
+}
+
+.markdown-body :deep(pre code) {
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  border: 0;
+  word-break: normal;
+  white-space: pre;
+  font-size: 100%;
+  display: inline;
+  max-width: auto;
+  overflow: visible;
+  line-height: inherit;
+}
+
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) {
+  padding-left: 2em;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown-body :deep(li) {
+  margin-top: 0.25em;
+}
+
+.markdown-body :deep(table) {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  width: 100%;
+  overflow: auto;
+}
+
+.markdown-body :deep(table th),
+.markdown-body :deep(table td) {
+  padding: 6px 13px;
+  border: 1px solid #dfe2e5;
+}
+
+.markdown-body :deep(table tr) {
+  background-color: #fff;
+  border-top: 1px solid #c6cbd1;
+}
+
+.markdown-body :deep(table tr:nth-child(2n)) {
+  background-color: #f6f8fa;
+}
+
+.markdown-body :deep(blockquote) {
+  margin: 0 0 16px;
+  padding: 0 1em;
+  color: #6a737d;
+  border-left: 0.25em solid #dfe2e5;
+}
+
+.markdown-body :deep(hr) {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: #e1e4e8;
+  border: 0;
+}
+
+.markdown-body :deep(img) {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 </style> 
