@@ -177,7 +177,7 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     loading.value = true
 
-    const { confirmPassword, ...registerData } = form
+    const {confirmPassword, ...registerData} = form
     await userStore.register(registerData)
 
     ElMessage.success('注册成功')
@@ -192,3 +192,63 @@ const handleSubmit = async () => {
 }
 </script>
 
+<style scoped>
+.register-container {
+  min-height: 100vh;
+  padding: 50px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #72edf2 10%, #5151e5 100%);
+}
+
+.register-card {
+  width: 500px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.card-header {
+  text-align: center;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.card-header p {
+  margin-top: 5px;
+  color: #888;
+}
+
+.submit-btn {
+  width: 100%;
+}
+
+.login-link {
+  margin-top: -10px;
+  text-align: center;
+}
+
+.login-link .el-button {
+  width: auto;
+}
+
+:deep(.el-form-item__label) {
+  font-weight: 500;
+}
+
+:deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+}
+
+:deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px #c0c4cc inset;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #409eff inset;
+}
+</style>
