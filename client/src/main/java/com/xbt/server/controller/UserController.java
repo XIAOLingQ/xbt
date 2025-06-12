@@ -67,7 +67,7 @@ public class UserController {
     @PostMapping("/logout")
     public Result<Void> logout(HttpSession session) {
         session.removeAttribute("userId");
-        session.removeAttribute("role");
+        session.removeAttribute("roole");
         session.invalidate();
         return Result.success();
     }
