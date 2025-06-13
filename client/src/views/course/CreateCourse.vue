@@ -1,6 +1,10 @@
 <template>
   <div class="create-course-container">
-    <el-page-header @back="goBack" content="创建新课程" class="page-header"></el-page-header>
+    <el-page-header @back="goBack" class="page-header">
+  <template #content>
+    <span class="page-title">创建新课程</span>
+  </template>
+</el-page-header>
     
     <el-card class="form-card">
       <el-form :model="courseForm" :rules="rules" ref="courseFormRef" label-width="100px">
@@ -41,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
@@ -133,36 +137,279 @@ const resetForm = () => {
 
 <style scoped>
 .create-course-container {
-  padding: 20px;
+  padding: 100px 40px 40px;
+  --primary-color: #6996f8;
+  --primary-light: #ebf2ff;
+  --primary-lighter: #f5f8ff;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --background-color: #f8fafc;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  min-height: 100vh;
 }
+
+.create-course-container {
+  position: relative;
+  z-index: 2;
+  background: rgba(248, 250, 252, 0.7);
+}
+
 .page-header {
-  margin-bottom: 20px;
+  margin-bottom: 80px;
+  padding-bottom: 15px;
+  position: relative;
 }
+
+.page-header:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.page-header {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 15px 20px;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 2px 12px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.page-header:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
+}
+
+.page-header:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  width: 60px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.page-header :deep(.el-page-header__content) {
+  display: flex;
+  align-items: center;
+}
+
+.page-header :deep(.el-page-header__back) {
+  font-size: 1.2rem;
+  margin-right: 12px;
+  color: var(--primary-color);
+  transition: all 0.3s ease;
+}
+
+.page-header :deep(.el-page-header__back):hover {
+  color: #1d4ed8;
+  transform: translateX(-2px);
+}
+
+.page-title {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: -0.025em;
+}
+
 .form-card {
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
+  border-radius: 12px;
+  border: none;
+  box-shadow: var(--card-shadow);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
-.cover-uploader .el-upload {
-  border: 1px dashed #d9d9d9;
-  border-radius: 6px;
+
+.form-card:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-color);
+}
+
+.form-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.el-form {
+  padding: 30px 40px;
+}
+
+.el-form-item {
+  margin-bottom: 28px;
+  transition: all 0.3s ease;
+}
+
+.el-form-item:hover {
+  transform: translateX(4px);
+}
+
+.el-form-item:deep(.el-form-item__label) {
+  font-weight: 500;
+  color: var(--text-primary);
+  padding-bottom: 8px;
+}
+
+.cover-uploader :deep(.el-upload) {
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: .2s;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
-.cover-uploader .el-upload:hover {
-  border-color: #409eff;
+
+.cover-uploader :deep(.el-upload:hover) {
+  border-color: var(--primary-color);
+  background-color: rgba(37, 99, 235, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1), 0 2px 4px -1px rgba(37, 99, 235, 0.06);
 }
-.cover-uploader-icon {
-  font-size: 28px;
-  color: #8c939d;
-  width: 178px;
-  height: 178px;
+
+.cover-uploader :deep(.el-upload):after {
+  content: '点击或拖拽上传封面';
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 100%;
   text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  transition: all 0.3s ease;
 }
+
+.cover-uploader-icon {
+  font-size: 32px;
+  color: var(--text-secondary);
+  width: 200px;
+  height: 200px;
+  line-height: 200px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
 .cover-image {
-  width: 178px;
-  height: 178px;
+  width: 100%;
+  height: 200px;
   display: block;
+  object-fit: cover;
 }
-</style> 
+
+.el-upload__tip {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.el-button {
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.el-button--primary {
+  min-width: 140px;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+}
+
+.el-button--primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -2px rgba(37, 99, 235, 0.1);
+  transform: translateY(-1px);
+}
+
+.el-button--primary:active {
+  transform: translateY(0);
+}
+
+.el-button--primary:after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: rotate(30deg);
+  transition: all 0.3s ease;
+}
+
+.el-button--primary:hover:after {
+  left: 100%;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .create-course-container {
+    padding: 20px 15px;
+    background: var(--background-color);
+  }
+  
+  .page-header :deep(.el-page-header__content) {
+    font-size: 1.3rem;
+  }
+  
+  .form-card {
+    border-radius: 0;
+    box-shadow: none;
+    background: white;
+  }
+  
+  .form-card:before {
+    display: none;
+  }
+  
+  .el-form {
+    padding: 20px;
+  }
+  
+  .cover-uploader :deep(.el-upload) {
+    width: 100%;
+  }
+  
+  .cover-uploader-icon,
+  .cover-image {
+    width: 100%;
+    height: 180px;
+    line-height: 180px;
+  }
+  
+  .el-button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+</style>
