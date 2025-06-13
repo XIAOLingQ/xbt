@@ -458,20 +458,79 @@ const handleDeleteHomework = (row) => {
 </script>
 
 <style scoped>
-.el-tree {
-  --el-tree-node-indent: 24px;
-}
 .course-manage-container {
-  padding: 20px;
+  padding: 100px 40px 40px;
+  --primary-color: #6996f8;
+  --primary-light: #ebf2ff;
+  --primary-lighter: #f5f8ff;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --background-color: #f8fafc;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  min-height: 100vh;
 }
+
 .page-header {
-    margin-bottom: 20px;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 10;
 }
+
+.page-header:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
+}
+
+.box-card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: var(--card-shadow);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.box-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.box-card:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-color);
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border-color);
 }
+
+.el-tree {
+  --el-tree-node-indent: 24px;
+  background: transparent;
+}
+
 .custom-tree-node {
   flex: 1;
   display: flex;
@@ -480,28 +539,99 @@ const handleDeleteHomework = (row) => {
   font-size: 14px;
   padding-right: 8px;
 }
+
 .video-preview {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 .video-url {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .video-container {
-    position: relative;
-    width: 100%;
-    max-width: 800px;
-    background: #000;
-    padding-top: 56.25%; /* 16:9 宽高比 */
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  background: #000;
+  padding-top: 56.25%; /* 16:9 宽高比 */
 }
 
 .video-player {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
-</style> 
+
+.el-button {
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.el-button--primary {
+  min-width: 140px;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+}
+
+.el-button--primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -2px rgba(37, 99, 235, 0.1);
+  transform: translateY(-1px);
+}
+
+.el-button--primary:active {
+  transform: translateY(0);
+}
+
+.el-button--primary:after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: rotate(30deg);
+  transition: all 0.3s ease;
+}
+
+.el-button--primary:hover:after {
+  left: 100%;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .course-manage-container {
+    padding: 80px 15px 15px;
+  }
+  
+  .box-card {
+    border-radius: 0;
+    box-shadow: none;
+    background: white;
+  }
+  
+  .box-card:before {
+    display: none;
+  }
+  
+  .el-form {
+    padding: 20px;
+  }
+  
+  .el-button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+</style>
