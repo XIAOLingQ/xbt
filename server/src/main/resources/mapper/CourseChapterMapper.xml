@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbt.server.mapper.CourseChapterMapper">
+
+    <select id="findByCourseId" resultType="com.xbt.server.pojo.entity.CourseVideo">
+        SELECT *
+        FROM course_video
+        WHERE course_id = #{courseId}
+        ORDER BY order_num ASC
+    </select>
+
+    <insert id="insert" parameterType="com.xbt.server.pojo.entity.CourseVideo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO course_video (course_id, parent_id, type, title, url, duration, order_num, created_at, updated_at)
+        VALUES (#{courseId}, #{parentId}, #{type}, #{title}, #{url}, #{duration}, #{orderNum}, NOW(), NOW())
+    </insert>
+
+    <update id="update" parameterType="com.xbt.server.pojo.entity.CourseVideo">
+        UPDATE course_video
+        <set>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="url != null">url = #{url},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM course_video WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByParentId">
+        DELETE FROM course_video WHERE parent_id = #{parentId}
+    </delete>
+
+    <update id="reorder" parameterType="map">
+        UPDATE course_video SET order_num = #{orderNum} WHERE id = #{id}
+    </update>
+
+    <!-- 标记视频为已完成，如果已存在则忽略 -->
+    <insert id="markVideoAsCompleted" parameterType="map">
+        INSERT IGNORE INTO student_video_progress (student_id, video_id, created_at, updated_at)
+        VALUES (#{studentId}, #{videoId}, NOW(), NOW())
+    </insert>
+
+    <!-- 统计课程的总节数 -->
+    <select id="countTotalSectionsByCourse" resultType="int">
+        SELECT COUNT(*) FROM course_video WHERE course_id = #{courseId} AND type = 2
+    </select>
+
+    <!-- 统计学生已完成的节数 -->
+    <select id="countCompletedSectionsByStudent" resultType="int">
+        SELECT COUNT(svp.id)
+        FROM student_video_progress svp
+        JOIN course_video cv ON svp.video_id = cv.id
+        WHERE svp.student_id = #{studentId} AND cv.course_id = #{courseId}
+    </select>
+
+    <!-- 更新学生的课程总进度 -->
+    <update id="updateStudentProgress" parameterType="map">
+        UPDATE course_student
+        SET progress = #{progress}, updated_at = NOW()
+        WHERE student_id = #{studentId} AND course_id = #{courseId}
+    </update>
+
+</mapper> 

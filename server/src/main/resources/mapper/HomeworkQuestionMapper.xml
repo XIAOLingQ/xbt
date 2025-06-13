@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbt.server.mapper.HomeworkQuestionMapper">
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO homework_question (homework_id, question_text, question_type, options,answer,score)
+        VALUES
+        <foreach collection="questions" item="item" separator=",">
+            (#{item.homeworkId}, #{item.questionText}, #{item.questionType}, #{item.options},#{item.answer},#{item.score})
+        </foreach>
+    </insert>
+
+    <select id="selectByHomeworkId" resultType="com.xbt.server.pojo.entity.HomeworkQuestion">
+        SELECT * FROM homework_question WHERE homework_id = #{homeworkId} ORDER BY id
+    </select>
+
+    <delete id="deleteByHomeworkId">
+        DELETE FROM homework_question WHERE homework_id = #{homeworkId}
+    </delete>
+
+</mapper> 
