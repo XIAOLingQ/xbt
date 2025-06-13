@@ -67,7 +67,7 @@ public class CourseChapterController {
         if (!AuthUtils.isTeacher()) {
             return Result.error(403, "无权限操作");
         }
-        // 此处应有更详细的权限校验
+        // 此处应有更详细的权限校验，进一步要优化
 
         courseChapterService.reorderChapters(chapters);
         return Result.success();
