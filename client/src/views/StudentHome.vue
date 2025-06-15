@@ -229,7 +229,6 @@ const aiTopic = ref('')
 const isGenerating = ref(false)
 const historyLoading = ref(false)
 const topicHistory = ref([])
-const topicHistoryLoaded = ref(false);
 const generateDialogVisible = ref(false)
 
 onMounted(() => {
@@ -369,12 +368,10 @@ const handleCourseClick = (courseId) => {
 }
 
 const fetchTopicHistory = async () => {
-    if (topicHistoryLoaded.value) return;
     historyLoading.value = true;
     try {
         const data = await getTopicHistory();
         topicHistory.value = data;
-        topicHistoryLoaded.value = true;
     } catch (error) {
         ElMessage.error('获取主题历史失败');
         topicHistory.value = [];
@@ -400,7 +397,7 @@ const handleGenerate = async () => {
     generateDialogVisible.value = false;
     await fetchTopicHistory(); // 刷新主题列表
   } catch (error) {
-    ElMessage.error('题目生成失败，请稍后重试');
+    ElMessage.error(error.response?.data?.message || '题目生成失败，请稍后重试');
   } finally {
     isGenerating.value = false;
   }
