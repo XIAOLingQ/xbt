@@ -4,6 +4,7 @@ import com.xbt.server.pojo.entity.Homework;
 import com.xbt.server.pojo.vo.HomeworkStatusVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -73,4 +74,12 @@ public interface HomeworkMapper {
      * @return
      */
     int countTotalHomeworksByStudentId(@Param("studentId") Long studentId);
+
+    @Select("<script>" +
+            "SELECT count(*) FROM homework WHERE course_id IN " +
+            "<foreach item='item' index='index' collection='courseIds' open='(' separator=',' close=')'>" +
+            "#{item}" +
+            "</foreach>" +
+            "</script>")
+    Integer countHomeworksByCourseIds(@Param("courseIds") List<Long> courseIds);
 }

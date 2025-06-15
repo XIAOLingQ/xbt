@@ -1,31 +1,27 @@
 package com.xbt.server.controller;
 
-import com.xbt.server.pojo.vo.LearningReportVO;
-import com.xbt.server.service.ReportService;
+import com.xbt.server.pojo.dto.UserDTO;
 import com.xbt.server.util.AuthUtils;
 import com.xbt.server.util.Result;
+import com.xbt.server.pojo.vo.StudentReportVO;
+import com.xbt.server.service.ReportService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
-
 @RestController
-@RequestMapping("/api/report")
+@RequestMapping("/api/reports")
+@RequiredArgsConstructor
 public class ReportController {
 
-    @Resource
-    private ReportService reportService;
+    private final ReportService reportService;
 
-    @GetMapping("/student")
-    public Result<LearningReportVO> getStudentReport() {
-        try {
-            Long studentId = AuthUtils.getCurrentUserId();
-            LearningReportVO report = reportService.generateStudentReport(studentId);
-            return Result.success(report);
-        } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
-            return Result.error(401, "用户未登录");
-        }
+    @GetMapping("/student/me")
+    public Result<StudentReportVO> getMyStudentReport() {
+        Long studentId = AuthUtils.getCurrentUserId();
+        StudentReportVO report = reportService.getStudentReport(studentId);
+        return Result.success(report);
     }
 }

@@ -78,7 +78,7 @@
                     </div>
                   </template>
                   <div class="stats-info">
-                    <div class="stats-number">{{ (reportData.totalStudyDurationMinutes / 60).toFixed(1) }}<span class="stats-unit">小时</span></div>
+                    <div class="stats-number">{{ (reportData.totalStudyDurationMinutes || 0).toFixed(1) }}<span class="stats-unit">分钟</span></div>
                   </div>
                 </el-card>
               </el-col>
@@ -90,7 +90,7 @@
                     </div>
                   </template>
                   <div class="stats-info">
-                    <div class="stats-number">{{ reportData.completedCoursesCount }} / {{ reportData.totalCoursesCount }}</div>
+                    <div class="stats-number">{{ reportData.completedCoursesCount || 0 }} / {{ reportData.totalCoursesCount || 0 }}</div>
                     <div class="stats-compare">已完成课程数 / 总课程数</div>
                   </div>
                 </el-card>
@@ -103,8 +103,8 @@
                     </div>
                   </template>
                   <div class="stats-info">
-                    <div class="stats-number">{{ reportData.averageScore.toFixed(1) }}<span class="stats-unit">分</span></div>
-                    <div class="stats-compare">已完成 {{ reportData.completedHomeworkCount }} / {{ reportData.totalHomeworkCount }} 个作业</div>
+                    <div class="stats-number">{{ (reportData.averageScore || 0).toFixed(1) }}<span class="stats-unit">分</span></div>
+                    <div class="stats-compare">已完成 {{ reportData.completedHomeworkCount || 0 }} / {{ reportData.totalHomeworkCount || 0 }} 个作业</div>
                   </div>
                 </el-card>
               </el-col>
@@ -115,17 +115,10 @@
                 <el-card class="report-card">
                   <template #header>
                     <div class="card-header">
-                      <span>学习趋势</span>
-                      <el-radio-group v-model="timeRange" size="small">
-                        <el-radio-button label="week">本周</el-radio-button>
-                        <el-radio-button label="month">本月</el-radio-button>
-                        <el-radio-button label="year">全年</el-radio-button>
-                      </el-radio-group>
+                      <span>近30日学习趋势</span>
                     </div>
                   </template>
-                  <div class="chart-container large">
-                    <div class="placeholder-chart">学习时长趋势图 (功能开发中)</div>
-                  </div>
+                  <div ref="studyTrendChart" class="chart-container large"></div>
                 </el-card>
               </el-col>
             </el-row>
@@ -202,14 +195,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElNotification } from 'element-plus'
 import { Reading, DataLine, Search, Plus, Aim } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getStudentCourses, joinCourse } from '@/api/course'
-import { getMyReportSummary } from '@/api/report'
+import { getMyReport } from '@/api/report'
 import { getTopicHistory, generateAiQuestion } from '@/api/ai'
+import * as echarts from 'echarts'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -223,6 +217,8 @@ const timeRange = ref('week')
 const reportData = ref(null);
 const reportLoading = ref(false);
 const reportDataLoaded = ref(false);
+const studyTrendChart = ref(null);
+let chartInstance = null;
 
 const joinCourseDialogVisible = ref(false)
 const courseCodeInput = ref('')
@@ -243,6 +239,11 @@ onMounted(() => {
   } else {
       handleSelect('courses');
   }
+  window.addEventListener('resize', () => {
+    if (chartInstance) {
+      chartInstance.resize();
+    }
+  });
 })
 
 const fetchCourses = async () => {
@@ -267,28 +268,78 @@ const filteredCourses = computed(() => {
   )
 })
 
-const fetchReportData = async () => {
-  if (reportDataLoaded.value) return;
+const fetchStudentReport = async () => {
   reportLoading.value = true;
   try {
-    const data = await getMyReportSummary();
-    console.log('从接口获取到的原始报告数据:', data);
+    const data = await getMyReport();
     reportData.value = data;
-    reportDataLoaded.value = true;
+    await nextTick();
+    initChart();
   } catch (error) {
+    console.error("获取学习报告失败", error);
     ElMessage.error('获取学习报告失败');
-    console.error(error);
   } finally {
     reportLoading.value = false;
   }
-}
+};
+
+const initChart = () => {
+  if (studyTrendChart.value && reportData.value && reportData.value.studyTrend) {
+    if (chartInstance) {
+        chartInstance.dispose();
+    }
+    chartInstance = echarts.init(studyTrendChart.value);
+
+    // 生成最近30天的日期
+    const dates = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      dates.push(d.toISOString().slice(0, 10));
+    }
+
+    const trendData = new Map(reportData.value.studyTrend.map(item => [item.date.slice(0,10), (item.duration || 0).toFixed(1)]));
+
+    const seriesData = dates.map(date => trendData.get(date) || 0);
+
+    const option = {
+      tooltip: {
+        trigger: 'axis',
+        formatter: '{b}: {c} 分钟'
+      },
+      xAxis: {
+        type: 'category',
+        data: dates,
+        axisLabel: {
+          rotate: 30
+        }
+      },
+      yAxis: {
+        type: 'value',
+        name: '学习时长 (分钟)'
+      },
+      series: [{
+        data: seriesData,
+        type: 'line',
+        smooth: true
+      }],
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '10%',
+        containLabel: true
+      }
+    };
+    chartInstance.setOption(option);
+  }
+};
 
 const handleSelect = (key) => {
   activeMenu.value = key
   if (key === 'courses') {
     fetchCourses();
   } else if (key === 'reports') {
-    fetchReportData();
+    fetchStudentReport();
   } else if (key === 'ai_playground') {
     fetchTopicHistory();
   }
@@ -368,6 +419,12 @@ const getTopicStatus = (topic) => {
         return { text: '已完成', type: 'success' };
     }
 };
+
+watch(activeMenu, (newVal) => {
+  if (newVal === 'reports' && !reportData.value) {
+    fetchStudentReport();
+  }
+});
 </script>
 
 <style scoped>
@@ -459,10 +516,8 @@ const getTopicStatus = (topic) => {
   align-items: center;
 }
 .chart-container {
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+  height: 400px;
 }
 .chart-container.large {
   height: 400px;

@@ -55,7 +55,7 @@ export const submitHomework = (data) => {
     method: 'post',
     data
   });
-};
+}; 
 
 /**
  * 获取作业提交列表
