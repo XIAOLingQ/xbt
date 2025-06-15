@@ -40,14 +40,11 @@ public class CozeService {
         if (videoUrl != null && !videoUrl.isEmpty()) {
             parameters = Map.of(
                     "input", userInput,
-                    "url", videoUrl
-            );
+                    "url", videoUrl);
         } else {
             parameters = Map.of(
-                    "input", userInput
-            );
+                    "input", userInput);
         }
-
 
         Map<String, Object> body = Map.of(
                 "workflow_id", cozeWorkflowId,
