@@ -57,23 +57,31 @@ import { v4 as uuidv4 } from 'uuid';
 import ChoiceEditor from './ChoiceEditor.vue';
 import ProgrammingEditor from './ProgrammingEditor.vue';
 
-const route = useRoute();
+const props = defineProps({
+    courseId: {
+        type: String,
+        required: true
+    },
+    homeworkId: {
+        type: String,
+        required: true
+    }
+});
+
 const router = useRouter();
 
-const courseId = ref(route.params.courseId);
-const homeworkId = ref(route.params.homeworkId);
 const homeworkData = ref({ questions: [] }); // 改进初始状态
 
-onMounted(async () => {
-    if (homeworkId.value) {
-        await fetchHomeworkData();
+onMounted(() => {
+    if (props.homeworkId !== 'new') {
+        fetchHomeworkData();
     }
 });
 
 const fetchHomeworkData = async () => {
     try {
         // 根据 request.js 的响应拦截器, API 调用成功后直接返回 res.data.data
-        const homeworkAndQuestions = await getHomeworkDetail(homeworkId.value);
+        const homeworkAndQuestions = await getHomeworkDetail(props.homeworkId);
         
         const homework = homeworkAndQuestions.homework;
         const questions = homeworkAndQuestions.questions || [];
@@ -102,7 +110,7 @@ const fetchHomeworkData = async () => {
 };
 
 const goBack = () => {
-    router.back();
+    router.push({ name: 'CourseManage', params: { courseId: props.courseId }, query: { tab: 'homework' } });
 };
 
 const saveAll = async () => {

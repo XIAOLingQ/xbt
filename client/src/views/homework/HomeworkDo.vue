@@ -163,7 +163,8 @@ const getSubmittedAnswer = (questionId) => {
 
 const parsedOptions = (question) => {
     try {
-        return JSON.parse(question.options);
+        const options = JSON.parse(question.options);
+        return options || {};
     } catch(e) {
         return {};
     }
@@ -171,13 +172,17 @@ const parsedOptions = (question) => {
 
 const parsedAnswer = (question) => {
     try {
-        return JSON.parse(question.answer);
+        const answer = JSON.parse(question.answer);
+        return answer || {};
     } catch(e) {
         return {};
     }
 }
 
 const formatDescription = (text) => {
+    if (typeof text !== 'string') {
+        return '';
+    }
     return text.replace(/\\n/g, '<br>');
 }
 

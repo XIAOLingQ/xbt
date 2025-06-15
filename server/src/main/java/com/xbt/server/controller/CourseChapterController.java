@@ -87,9 +87,4 @@ public class CourseChapterController {
         return Result.success();
     }
 
-//    @GetMapping("/{courseId}")
-//    public Result<List<CourseChapterVO>> getCourseChapterTree(@PathVariable Long courseId) {
-//        List<CourseChapterVO> chapterTree = courseChapterService.getCourseChapterTree(courseId);
-//        return Result.success(chapterTree);
-//    }
 }

@@ -123,9 +123,10 @@
             <el-table-column prop="title" label="作业标题" />
             <el-table-column prop="startTime" label="开始时间" />
             <el-table-column prop="endTime" label="结束时间" />
-            <el-table-column label="操作" width="150">
+            <el-table-column label="操作" width="220">
                 <template #default="scope">
-                    <el-button size="small" type="primary" @click="handleEditHomework(scope.row)">编辑</el-button>
+                    <el-button size="small" type="primary" @click="handleGradeHomework(scope.row)">批改</el-button>
+                    <el-button size="small" @click="handleEditHomework(scope.row)">编辑</el-button>
                     <el-button size="small" type="danger" @click="handleDeleteHomework(scope.row)">删除</el-button>
                 </template>
             </el-table-column>
@@ -244,7 +245,7 @@ const fetchUploadToken = async () => {
     }
 };
 
-const goBack = () => router.back();
+const goBack = () => router.push('/');
 
 const addChapter = () => {
   currentNode.value = {
@@ -430,6 +431,10 @@ const handleCreateHomework = async () => {
 
 const handleEditHomework = (homework) => {
     router.push(`/course/${props.courseId}/homework/edit/${homework.id}`);
+};
+
+const handleGradeHomework = (homework) => {
+    router.push({ name: 'HomeworkGrading', params: { courseId: props.courseId, homeworkId: homework.id } });
 };
 
 const handleDeleteHomework = (row) => {

@@ -3,23 +3,27 @@ package com.xbt.server.service.impl;
 import com.xbt.server.mapper.HomeworkMapper;
 import com.xbt.server.mapper.HomeworkQuestionMapper;
 import com.xbt.server.mapper.HomeworkSubmissionMapper;
-import com.xbt.server.pojo.dto.HomeworkDetailDTO;
-import com.xbt.server.pojo.dto.SaveHomeworkRequest;
-import com.xbt.server.pojo.dto.SubmitHomeworkRequest;
+import com.xbt.server.mapper.UserMapper;
+import com.xbt.server.pojo.dto.*;
 import com.xbt.server.pojo.entity.Homework;
 import com.xbt.server.pojo.entity.HomeworkQuestion;
 import com.xbt.server.pojo.entity.HomeworkSubmission;
+import com.xbt.server.pojo.entity.User;
 import com.xbt.server.pojo.vo.HomeworkStatusVO;
+import com.xbt.server.pojo.vo.HomeworkSubmissionSummaryVO;
+import com.xbt.server.pojo.vo.SubmissionDetailVO;
 import com.xbt.server.service.HomeworkService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class HomeworkServiceImpl implements HomeworkService {
@@ -30,8 +34,11 @@ public class HomeworkServiceImpl implements HomeworkService {
     @Resource
     private HomeworkQuestionMapper homeworkQuestionMapper;
 
-    @Resource
+    @Autowired
     private HomeworkSubmissionMapper homeworkSubmissionMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public List<HomeworkStatusVO> getHomeworkListByCourseId(Long courseId, Long studentId) {
@@ -40,7 +47,7 @@ public class HomeworkServiceImpl implements HomeworkService {
 
     @Override
     @Transactional
-    public Homework saveHomework(SaveHomeworkRequest request) {
+    public Homework saveHomework(HomeworkDTO request) {
         Homework homework = new Homework();
         BeanUtils.copyProperties(request, homework);
 
@@ -136,5 +143,43 @@ public class HomeworkServiceImpl implements HomeworkService {
         }
 
         homeworkSubmissionMapper.upsert(submission);
+    }
+
+    @Override
+    public List<HomeworkSubmissionSummaryVO> getSubmissionsByHomeworkId(Long homeworkId) {
+        return homeworkSubmissionMapper.findSubmissionsByHomeworkId(homeworkId);
+    }
+
+    @Override
+    public SubmissionDetailVO getSubmissionDetails(Long submissionId) {
+        // This is a simplified implementation. A real one might need more details.
+        HomeworkSubmission submission = homeworkSubmissionMapper.findById(submissionId);
+        if (submission == null)
+            return null;
+
+        Homework homework = homeworkMapper.selectById(submission.getHomeworkId());
+        User student = userMapper.selectById(submission.getStudentId());
+        List<HomeworkQuestion> questions = homeworkQuestionMapper.selectByHomeworkId(submission.getHomeworkId());
+
+        SubmissionDetailVO vo = new SubmissionDetailVO();
+        vo.setHomeworkTitle(homework.getTitle());
+        vo.setStudentName(student.getRealName());
+        vo.setQuestions(questions);
+        try {
+            vo.setStudentAnswers(new ObjectMapper().readValue(submission.getAnswers(), Map.class));
+        } catch (Exception e) {
+            vo.setStudentAnswers(Map.of());
+        }
+        return vo;
+    }
+
+    @Override
+    public void gradeSubmission(Long submissionId, GradeSubmissionRequest request) {
+        HomeworkSubmission submission = homeworkSubmissionMapper.findById(submissionId);
+        if (submission != null) {
+            submission.setScore(request.getFinalScore());
+            submission.setStatus(3); // 3 = Graded
+            homeworkSubmissionMapper.update(submission);
+        }
     }
 }

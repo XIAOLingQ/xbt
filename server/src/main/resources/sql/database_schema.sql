@@ -279,3 +279,40 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2025-06-11 22:55:30
+
+--
+-- Table structure for table `ai_question`
+--
+
+DROP TABLE IF EXISTS `ai_question`;
+CREATE TABLE `ai_question` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '问题ID',
+  `student_id` bigint NOT NULL COMMENT '学生ID',
+  `topic` varchar(255) NOT NULL COMMENT '生成主题',
+  `batch_id` varchar(255) DEFAULT NULL COMMENT '生成批次ID',
+  `question_type` varchar(50) NOT NULL COMMENT '问题类型 (e.g., single_choice, text_answer)',
+  `question_text` text NOT NULL COMMENT '问题内容',
+  `options` json DEFAULT NULL COMMENT '选项 (for choice questions)',
+  `correct_answer` text COMMENT '正确答案',
+  `analysis` text COMMENT '题目解析',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_student_id` (`student_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI生成问题表';
+
+--
+-- Table structure for table `ai_submission`
+--
+
+DROP TABLE IF EXISTS `ai_submission`;
+CREATE TABLE `ai_submission` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '提交ID',
+  `ai_question_id` bigint NOT NULL COMMENT 'AI问题ID',
+  `student_id` bigint NOT NULL COMMENT '学生ID',
+  `student_answer` text COMMENT '学生答案',
+  `is_correct` tinyint(1) DEFAULT NULL COMMENT '是否正确',
+  `submitted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '提交时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_ai_question_id` (`ai_question_id`),
+  KEY `idx_student_id` (`student_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI问题提交表';

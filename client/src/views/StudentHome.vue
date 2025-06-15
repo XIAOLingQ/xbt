@@ -16,6 +16,10 @@
             <el-icon><DataLine /></el-icon>
             <span>学习报告</span>
           </el-menu-item>
+          <el-menu-item index="ai_playground">
+            <el-icon><Aim /></el-icon>
+            <span>AI靶场</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
 
@@ -128,6 +132,39 @@
           </div>
           <el-empty v-if="!reportLoading && !reportData" description="暂无学习报告数据"></el-empty>
         </div>
+
+        <!-- AI靶场 -->
+        <div v-if="activeMenu === 'ai_playground'">
+          <div class="section-header">
+            <h2>AI靶场 - 练习主题</h2>
+            <el-button type="primary" :icon="Plus" @click="openGenerateDialog">生成新题目</el-button>
+          </div>
+          
+          <div v-if="historyLoading" class="loading-container">
+              <el-skeleton :rows="5" animated />
+          </div>
+
+          <el-row :gutter="20" v-if="!historyLoading && topicHistory.length > 0">
+            <el-col :span="6" v-for="topic in topicHistory" :key="topic.batchId">
+              <el-card class="topic-card" @click="goToPractice(topic)">
+                <div class="topic-info">
+                  <h3>{{ topic.topic }}</h3>
+                  <p class="topic-meta">
+                    创建于 {{ new Date(topic.createdAt).toLocaleDateString() }}
+                  </p>
+                </div>
+                <div class="topic-footer">
+                  <div class="topic-progress">
+                    <el-progress :percentage="topic.totalCount > 0 ? (topic.completedCount / topic.totalCount * 100) : 0" :show-text="false"/>
+                    <span class="progress-text">{{ topic.completedCount }} / {{ topic.totalCount }} 题</span>
+                  </div>
+                  <el-tag :type="getTopicStatus(topic).type" size="small">{{ getTopicStatus(topic).text }}</el-tag>
+                </div>
+              </el-card>
+            </el-col>
+          </el-row>
+          <el-empty v-if="!historyLoading && topicHistory.length === 0" description="您还没有生成过题目，快去生成新的题目吧！"></el-empty>
+        </div>
       </el-main>
     </div>
 
@@ -147,17 +184,32 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 生成新题目对话框 -->
+    <el-dialog v-model="generateDialogVisible" title="生成新题目" width="500px">
+        <el-input
+            v-model="aiTopic"
+            placeholder="请输入您想练习的知识点，例如：Java并发、二叉树"
+            class="topic-input"
+        >
+            <template #append>
+                <el-button @click="handleGenerate" :loading="isGenerating">立即生成</el-button>
+            </template>
+        </el-input>
+        <p class="dialog-tip">生成成功后，请关闭对话框查看您的新题目列表。</p>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Reading, DataLine, Search, Plus } from '@element-plus/icons-vue'
+import { ElMessage, ElNotification } from 'element-plus'
+import { Reading, DataLine, Search, Plus, Aim } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getStudentCourses, joinCourse } from '@/api/course'
 import { getMyReportSummary } from '@/api/report'
+import { getTopicHistory, generateAiQuestion } from '@/api/ai'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -165,26 +217,45 @@ const userStore = useUserStore()
 const activeMenu = ref('courses')
 const searchText = ref('')
 const courses = ref([])
+const coursesLoaded = ref(false)
 const timeRange = ref('week')
 
 const reportData = ref(null);
 const reportLoading = ref(false);
+const reportDataLoaded = ref(false);
 
 const joinCourseDialogVisible = ref(false)
 const courseCodeInput = ref('')
 const isJoining = ref(false)
 
+// --- AI靶场相关 ---
+const aiTopic = ref('')
+const isGenerating = ref(false)
+const historyLoading = ref(false)
+const topicHistory = ref([])
+const topicHistoryLoaded = ref(false);
+const generateDialogVisible = ref(false)
+
 onMounted(() => {
-  fetchCourses()
+  const tab = router.currentRoute.value.query.tab;
+  if (tab) {
+      handleSelect(tab);
+  } else {
+      handleSelect('courses');
+  }
 })
 
 const fetchCourses = async () => {
+  if (coursesLoaded.value) return;
   try {
     const res = await getStudentCourses({ page: 1, size: 10 })
     courses.value = res.list
+    coursesLoaded.value = true;
   } catch (error) {
     ElMessage.error('获取课程列表失败')
     console.error(error)
+  } finally {
+    reportLoading.value = false;
   }
 }
 
@@ -197,11 +268,13 @@ const filteredCourses = computed(() => {
 })
 
 const fetchReportData = async () => {
+  if (reportDataLoaded.value) return;
   reportLoading.value = true;
   try {
     const data = await getMyReportSummary();
     console.log('从接口获取到的原始报告数据:', data);
     reportData.value = data;
+    reportDataLoaded.value = true;
   } catch (error) {
     ElMessage.error('获取学习报告失败');
     console.error(error);
@@ -212,8 +285,12 @@ const fetchReportData = async () => {
 
 const handleSelect = (key) => {
   activeMenu.value = key
-  if (key === 'reports') {
+  if (key === 'courses') {
+    fetchCourses();
+  } else if (key === 'reports') {
     fetchReportData();
+  } else if (key === 'ai_playground') {
+    fetchTopicHistory();
   }
 }
 
@@ -239,6 +316,58 @@ const handleJoinCourse = async () => {
 const handleCourseClick = (courseId) => {
   router.push(`/course/learn/${courseId}`);
 }
+
+const fetchTopicHistory = async () => {
+    if (topicHistoryLoaded.value) return;
+    historyLoading.value = true;
+    try {
+        const data = await getTopicHistory();
+        topicHistory.value = data;
+        topicHistoryLoaded.value = true;
+    } catch (error) {
+        ElMessage.error('获取主题历史失败');
+        topicHistory.value = [];
+    } finally {
+        historyLoading.value = false;
+    }
+}
+
+const openGenerateDialog = () => {
+    aiTopic.value = '';
+    generateDialogVisible.value = true;
+}
+
+const handleGenerate = async () => {
+  if (!aiTopic.value) {
+    ElMessage.warning('请输入知识点主题');
+    return;
+  }
+  isGenerating.value = true;
+  try {
+    await generateAiQuestion(aiTopic.value);
+    ElMessage.success('新题目生成成功！');
+    generateDialogVisible.value = false;
+    await fetchTopicHistory(); // 刷新主题列表
+  } catch (error) {
+    ElMessage.error('题目生成失败，请稍后重试');
+  } finally {
+    isGenerating.value = false;
+  }
+}
+
+const goToPractice = (topic) => {
+    router.push({ name: 'AiQuestionView', params: { batchId: topic.batchId }, query: { topic: topic.topic } });
+}
+
+const getTopicStatus = (topic) => {
+    if (topic.completedCount === 0) {
+        return { text: '待完成', type: 'info' };
+    } else if (topic.completedCount < topic.totalCount) {
+        return { text: '进行中', type: 'warning' };
+    } else {
+        return { text: '已完成', type: 'success' };
+    }
+};
 </script>
 
 <style scoped>
@@ -361,5 +490,86 @@ const handleCourseClick = (courseId) => {
 }
 .mt-20 {
   margin-top: 20px;
+}
+.ai-playground .topic-input {
+  margin-bottom: 20px;
+}
+.question-container {
+  padding: 20px 0;
+}
+.question-text {
+  font-size: 16px;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+.options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.submit-action {
+  margin-top: 20px;
+  text-align: right;
+}
+.question-card {
+  margin-bottom: 20px;
+}
+.questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.result-alert {
+  margin-top: 20px;
+}
+.result-alert p {
+  margin: 5px 0;
+}
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+.dialog-tip {
+    margin-top: 15px;
+    font-size: 12px;
+    color: #909399;
+    text-align: center;
+}
+.topic-card {
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.topic-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.topic-info h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+.topic-meta {
+  font-size: 12px;
+  color: #909399;
+  margin: 0 0 15px;
+}
+.topic-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.topic-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-grow: 1;
+  margin-right: 10px;
+}
+.progress-text {
+  font-size: 12px;
+  color: #606266;
+  width: 70px; /* 防止文字换行 */
 }
 </style> 

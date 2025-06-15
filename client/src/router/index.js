@@ -2,6 +2,15 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import BasicLayout from '../components/layout/BasicLayout.vue'
 import { ElMessage } from 'element-plus'
+import Home from '../views/Home.vue'
+import Profile from '../views/Profile.vue'
+import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
+import CreateCourse from '../views/course/CreateCourse.vue'
+import ManageCourse from '../views/course/CourseManage.vue'
+import LearnCourse from '../views/course/CourseLearn.vue'
+// import HomeworkDetail from '../views/homework/HomeworkDetail.vue'
+import AiQuestionView from '../views/ai/QuestionView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -42,14 +51,14 @@ const router = createRouter({
         {
           path: 'course/manage/:courseId',
           name: 'CourseManage',
-          component: () => import('../views/course/CourseManage.vue'),
+          component: ManageCourse,
           meta: { requiresTeacher: true },
           props: true
         },
         {
           path: 'course/learn/:id',
           name: 'CourseLearn',
-          component: () => import('../views/course/CourseLearn.vue'),
+          component: LearnCourse,
           meta: { requiresStudent: true },
           props: true
         },
@@ -60,9 +69,30 @@ const router = createRouter({
           props: true
         },
         {
+          path: '/course/:courseId/homework/:homeworkId/grading',
+          name: 'HomeworkGrading',
+          component: () => import('../views/homework/HomeworkGrading.vue'),
+          props: true,
+          meta: { requiresTeacher: true }
+        },
+        {
+          path: '/homework/submission/:submissionId/grade',
+          name: 'SubmissionGrading',
+          component: () => import('../views/homework/SubmissionGrading.vue'),
+          props: true,
+          meta: { requiresTeacher: true }
+        },
+        {
           path: '/homework/do/:id',
           name: 'HomeworkDo',
           component: () => import('../views/homework/HomeworkDo.vue'),
+          props: true,
+          meta: { requiresAuth: true }
+        },
+        {
+          path: '/ai/history/:batchId',
+          name: 'AiQuestionView',
+          component: AiQuestionView,
           props: true,
           meta: { requiresAuth: true }
         }
