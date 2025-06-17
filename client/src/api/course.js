@@ -82,4 +82,12 @@ export function deleteCourse(courseId) {
     url: `/course/${courseId}`,
     method: 'delete'
   })
-} 
+}
+
+export function getCourseList(params) {
+  return request({
+    url: '/course/all',
+    method: 'get',
+    params
+  })
+}

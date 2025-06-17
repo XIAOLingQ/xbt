@@ -11,10 +11,17 @@ import ManageCourse from '../views/course/CourseManage.vue'
 import LearnCourse from '../views/course/CourseLearn.vue'
 // import HomeworkDetail from '../views/homework/HomeworkDetail.vue'
 import AiQuestionView from '../views/ai/QuestionView.vue'
+import Splash from '../views/Splash.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    {
+      path: '/splash',
+      name: 'Splash',
+      component: Splash,
+      meta: { requiresGuest: true }
+    },
     {
       path: '/login',
       name: 'Login',
@@ -104,7 +111,21 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
+  // 首次进入应用时，尝试获取用户信息
+  if (!userStore.isLoggedIn && localStorage.getItem('token')) {
+    try {
+      await userStore.getUserInfo()
+    } catch (error) {
+      // 获取失败，token无效，停留在guest页面
+      localStorage.removeItem('token')
+    }
+  }
   const isLoggedIn = userStore.isLoggedIn
+
+  // 如果未登录，且目标路由不是 guest 路由，则重定向到 splash
+  if (!isLoggedIn && to.path !== '/splash' && to.path !== '/login' && to.path !== '/register') {
+    return next('/splash');
+  }
 
   // 检查教师权限
   if (to.meta.requiresTeacher && !userStore.isTeacher) {

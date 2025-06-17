@@ -15,6 +15,8 @@ public interface CourseMapper {
     // 插入课程
     void insert(Course course);
 
+    List<Course> findAll();
+
     // 根据ID查询课程
     Course findById(@Param("id") Long id);
 

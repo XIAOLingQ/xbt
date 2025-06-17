@@ -10,6 +10,10 @@
         VALUES (#{title}, #{description}, #{coverImage}, #{courseCode}, #{teacherId}, #{status}, NOW(), NOW())
     </insert>
 
+    <select id="findAll" resultType="com.xbt.server.pojo.entity.Course">
+        SELECT * FROM course ORDER BY created_at DESC
+    </select>
+
     <!-- 更新课程信息 -->
     <update id="update" parameterType="com.xbt.server.pojo.entity.Course">
         UPDATE course

@@ -115,7 +115,10 @@
             <artifactId>springdoc-openapi-ui</artifactId>
             <version>1.6.15</version> <!-- 你也可以用 1.7.x -->
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
 
 
     </dependencies>

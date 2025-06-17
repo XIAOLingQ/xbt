@@ -7,6 +7,7 @@ import com.xbt.server.pojo.vo.TeacherCourseVO;
 import com.xbt.server.pojo.vo.PageVO;
 import com.xbt.server.pojo.vo.LearnPageVO;
 import java.util.List;
+import com.xbt.server.pojo.PageBean;
 
 public interface CourseService {
     // 创建课程
@@ -33,6 +34,8 @@ public interface CourseService {
      * @return
      */
     PageVO<StudentCourseVO> getCoursesByStudentId(Long studentId, int page, int size);
+
+    PageBean<CourseVO> getAllCourses(Integer page, Integer pageSize);
 
     // 更新课程信息
     CourseVO updateCourse(Long courseId, CreateCourseRequest request);
