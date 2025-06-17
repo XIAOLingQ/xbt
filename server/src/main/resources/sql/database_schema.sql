@@ -16,6 +16,41 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `ai_question`
+--
+
+DROP TABLE IF EXISTS `ai_question`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ai_question` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '问题ID',
+  `student_id` bigint NOT NULL COMMENT '学生ID',
+  `topic` varchar(255) NOT NULL COMMENT '生成主题',
+  `batch_id` varchar(255) DEFAULT NULL COMMENT '生成批次ID',
+  `question_type` varchar(50) NOT NULL COMMENT '问题类型 (e.g., single_choice, text_answer)',
+  `question_text` text NOT NULL COMMENT '问题内容',
+  `options` json DEFAULT NULL COMMENT '选项 (for choice questions)',
+  `correct_answer` text COMMENT '正确答案',
+  `analysis` text COMMENT '题目解析',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `student_answer` varchar(255) DEFAULT NULL COMMENT '学生答案',
+  `is_correct` tinyint(1) DEFAULT NULL COMMENT '是否正确',
+  PRIMARY KEY (`id`),
+  KEY `idx_student_id` (`student_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI生成问题表';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ai_question`
+--
+
+LOCK TABLES `ai_question` WRITE;
+/*!40000 ALTER TABLE `ai_question` DISABLE KEYS */;
+INSERT INTO `ai_question` VALUES (1,2,'数据结构','9afd948f-9f56-4ec3-aab5-1d7b65f1c557','single_choice','以下属于非线性数据结构的是？','[{\"option\": \"A\", \"description\": \"栈\"}, {\"option\": \"B\", \"description\": \"队列\"}, {\"option\": \"C\", \"description\": \"二叉树\"}, {\"option\": \"D\", \"description\": \"单链表\"}]','C','线性结构包括栈、队列、单链表等（参考资料中明确列出线性结构包含栈、队列、单链表），而二叉树属于树形结构，树形结构是非线性数据结构（参考资料中树形结构归类为非线性结构）。因此正确答案为C。','2025-06-15 09:29:10','C',1),(2,2,'数据结构','9afd948f-9f56-4ec3-aab5-1d7b65f1c557','single_choice','以下哪种查找算法要求数据必须有序才能使用？','[{\"option\": \"A\", \"description\": \"线性查找\"}, {\"option\": \"B\", \"description\": \"二分查找\"}, {\"option\": \"C\", \"description\": \"哈希查找\"}, {\"option\": \"D\", \"description\": \"顺序查找\"}]','B','二分查找（二分搜索）的核心原理是通过比较中间元素与目标值的大小，逐步缩小搜索范围，这要求数据必须有序（参考资料中明确提到“二分查找”属于搜索类别）。线性查找、顺序查找无需数据有序，哈希查找依赖哈希函数映射，也不要求数据有序。因此正确答案为B。','2025-06-15 09:29:10','B',1),(3,2,'数据结构','4e83ca7b-ad2c-463a-a4bc-7bd7c8045e57','single_choice','以下数据结构中，属于线性结构的是？','[{\"option\": \"A\", \"description\": \"栈\"}, {\"option\": \"B\", \"description\": \"二叉树\"}, {\"option\": \"C\", \"description\": \"红黑树\"}, {\"option\": \"D\", \"description\": \"无向图\"}]','A','线性结构的特点是数据元素之间存在一对一的线性关系。参考资料中明确提到线性结构包括栈（Stack）、队列（Queue）、链表等；而二叉树、红黑树属于树形结构（非线性），无向图属于图形结构（非线性），因此正确答案为A。','2025-06-15 10:31:10','A',1),(4,2,'数据结构','4e83ca7b-ad2c-463a-a4bc-7bd7c8045e57','single_choice','以下查找算法中，要求数据必须有序才能使用的是？','[{\"option\": \"A\", \"description\": \"线性查找\"}, {\"option\": \"B\", \"description\": \"二分查找\"}, {\"option\": \"C\", \"description\": \"顺序查找\"}, {\"option\": \"D\", \"description\": \"随机查找\"}]','B','二分查找（Binary Search）的核心思想是通过比较中间元素与目标值的大小，逐步缩小搜索范围，因此要求数据必须有序。参考资料中提到“二分查找”属于搜索分类，而线性查找、顺序查找（与线性查找类似）和随机查找均不要求数据有序。因此正确答案为B。','2025-06-15 10:31:10','B',1),(25,2,'操作系统','eaf4f794-dce3-4189-bc40-4a7af7144deb','single_choice','操作系统的基本特征不包括以下哪一项？','[{\"option\": \"A\", \"description\": \"并发\"}, {\"option\": \"B\", \"description\": \"共享\"}, {\"option\": \"C\", \"description\": \"确定性\"}, {\"option\": \"D\", \"description\": \"异步\"}]','C','操作系统的基本特征包括并发、共享、虚拟和异步。确定性指程序执行结果可预测，并非操作系统的基本特征。','2025-06-15 13:38:49',NULL,NULL),(26,2,'操作系统','eaf4f794-dce3-4189-bc40-4a7af7144deb','single_choice','操作系统开始出现于哪个发展阶段？','[{\"option\": \"A\", \"description\": \"手工操作阶段\"}, {\"option\": \"B\", \"description\": \"批处理阶段\"}, {\"option\": \"C\", \"description\": \"分时操作系统阶段\"}, {\"option\": \"D\", \"description\": \"实时操作系统阶段\"}]','B','手工操作阶段无操作系统；批处理阶段（单道/多道）开始出现操作系统，用于自动管理作业执行。','2025-06-15 13:38:49',NULL,NULL),(27,2,'操作系统','eaf4f794-dce3-4189-bc40-4a7af7144deb','single_choice','当进程等待的I/O操作完成后，其状态会从哪种状态转换为就绪态？','[{\"option\": \"A\", \"description\": \"运行态\"}, {\"option\": \"B\", \"description\": \"就绪态\"}, {\"option\": \"C\", \"description\": \"等待态\"}, {\"option\": \"D\", \"description\": \"终止态\"}]','C','进程等待I/O时处于等待态（阻塞态），I/O完成后，进程获得资源，转为就绪态等待CPU调度。','2025-06-15 13:38:49',NULL,NULL),(28,2,'操作系统','eaf4f794-dce3-4189-bc40-4a7af7144deb','single_choice','分时操作系统常用的调度算法是？','[{\"option\": \"A\", \"description\": \"先来先服务（FCFS）\"}, {\"option\": \"B\", \"description\": \"时间片轮转（RR）\"}, {\"option\": \"C\", \"description\": \"短作业优先（SJF）\"}, {\"option\": \"D\", \"description\": \"优先级调度\"}]','B','分时系统需保证用户交互响应，时间片轮转通过固定时间片分配CPU，确保各进程公平占用CPU。','2025-06-15 13:38:49',NULL,NULL),(29,2,'操作系统','eaf4f794-dce3-4189-bc40-4a7af7144deb','single_choice','以下哪项不是死锁发生的必要条件？','[{\"option\": \"A\", \"description\": \"互斥条件\"}, {\"option\": \"B\", \"description\": \"请求和保持条件\"}, {\"option\": \"C\", \"description\": \"资源充足条件\"}, {\"option\": \"D\", \"description\": \"循环等待条件\"}]','C','死锁的四个必要条件是互斥、请求和保持、不可抢占、循环等待。资源充足不会导致死锁。','2025-06-15 13:38:49',NULL,NULL),(30,2,'操作系统','eaf4f794-dce3-4189-bc40-4a7af7144deb','single_choice','为解决不同用户文件重名问题，文件系统通常采用哪种目录结构？','[{\"option\": \"A\", \"description\": \"单级目录\"}, {\"option\": \"B\", \"description\": \"二级目录\"}, {\"option\": \"C\", \"description\": \"多级目录\"}, {\"option\": \"D\", \"description\": \"无目录结构\"}]','C','多级目录（树形目录）通过路径名唯一标识文件，允许不同用户或目录下使用相同文件名。','2025-06-15 13:38:49',NULL,NULL),(31,2,'操作系统','eaf4f794-dce3-4189-bc40-4a7af7144deb','single_choice','虚拟内存管理的基础是？','[{\"option\": \"A\", \"description\": \"交换技术\"}, {\"option\": \"B\", \"description\": \"覆盖技术\"}, {\"option\": \"C\", \"description\": \"局部性原理\"}, {\"option\": \"D\", \"description\": \"动态链接\"}]','C','虚拟内存利用程序运行的局部性原理（时间局部性和空间局部性），仅加载部分页面到内存即可运行。','2025-06-15 13:38:49',NULL,NULL),(32,2,'操作系统','eaf4f794-dce3-4189-bc40-4a7af7144deb','single_choice','用户程序通过哪种方式请求操作系统服务？','[{\"option\": \"A\", \"description\": \"系统调用\"}, {\"option\": \"B\", \"description\": \"中断\"}, {\"option\": \"C\", \"description\": \"异常\"}, {\"option\": \"D\", \"description\": \"进程通信\"}]','A','系统调用是用户程序访问操作系统服务的接口，通过陷入指令（如trap）从用户态切换到核心态。','2025-06-15 13:38:49',NULL,NULL),(33,2,'操作系统','eaf4f794-dce3-4189-bc40-4a7af7144deb','single_choice','以下页面置换算法中，哪一种理论上缺页率最低？','[{\"option\": \"A\", \"description\": \"先进先出（FIFO）\"}, {\"option\": \"B\", \"description\": \"最近最少使用（LRU）\"}, {\"option\": \"C\", \"description\": \"最优置换（OPT）\"}, {\"option\": \"D\", \"description\": \"最不常用（LFU）\"}]','C','OPT算法选择未来最长时间不被访问的页面置换，是理论最优解，但实际无法实现（需预知未来访问序列）。','2025-06-15 13:38:49',NULL,NULL),(34,2,'操作系统','eaf4f794-dce3-4189-bc40-4a7af7144deb','single_choice','微内核体系结构的特点是？','[{\"option\": \"A\", \"description\": \"所有服务都运行在核心态\"}, {\"option\": \"B\", \"description\": \"仅核心功能（如进程调度）在核心态，其他服务在用户态\"}, {\"option\": \"C\", \"description\": \"内核代码量庞大，性能更高\"}, {\"option\": \"D\", \"description\": \"不支持多线程\"}]','B','微内核将核心功能（如进程通信、线程调度）保留在核心态，其他服务（如文件系统）运行在用户空间，提高灵活性和可靠性。','2025-06-15 13:38:49',NULL,NULL),(35,2,'计算机网络','d5a757e8-32d0-4e88-813d-e7631ddf8a84','single_choice','计算机网络的主要目的是实现以下哪项功能？','[{\"option\": \"A\", \"description\": \"资源共享\"}, {\"option\": \"B\", \"description\": \"数据存储\"}, {\"option\": \"C\", \"description\": \"文件打印\"}, {\"option\": \"D\", \"description\": \"视频会议\"}]','A','参考资料中明确指出，计算机网络的定义是通过连接实现信息传输和资源共享的系统，因此主要目的是资源共享。','2025-06-15 13:44:37',NULL,NULL),(36,2,'计算机网络','d5a757e8-32d0-4e88-813d-e7631ddf8a84','single_choice','以下哪种属于按地理范围分类的网络类型？','[{\"option\": \"A\", \"description\": \"星形拓扑\"}, {\"option\": \"B\", \"description\": \"局域网（LAN）\"}, {\"option\": \"C\", \"description\": \"TCP/IP协议\"}, {\"option\": \"D\", \"description\": \"光纤传输\"}]','B','参考资料中提到网络按地理范围分类包括LAN（局域网）、MAN（城域网）、WAN（广域网）等，因此正确答案为局域网（LAN）。','2025-06-15 13:44:37',NULL,NULL),(37,2,'计算机网络','d5a757e8-32d0-4e88-813d-e7631ddf8a84','single_choice','OSI参考模型的第四层是？','[{\"option\": \"A\", \"description\": \"物理层\"}, {\"option\": \"B\", \"description\": \"数据链路层\"}, {\"option\": \"C\", \"description\": \"传输层\"}, {\"option\": \"D\", \"description\": \"应用层\"}]','C','OSI参考模型共七层，顺序为物理层（1）、数据链路层（2）、网络层（3）、传输层（4）、会话层（5）、表示层（6）、应用层（7），因此第四层是传输层。','2025-06-15 13:44:37',NULL,NULL),(38,2,'计算机网络','d5a757e8-32d0-4e88-813d-e7631ddf8a84','single_choice','TCP/IP模型的网际层对应OSI参考模型的哪一层？','[{\"option\": \"A\", \"description\": \"物理层\"}, {\"option\": \"B\", \"description\": \"网络层\"}, {\"option\": \"C\", \"description\": \"传输层\"}, {\"option\": \"D\", \"description\": \"应用层\"}]','B','TCP/IP模型的网际层（IP层）主要负责网络间的寻址和路由，与OSI参考模型的网络层功能一致。','2025-06-15 13:44:37',NULL,NULL),(39,2,'计算机网络','d5a757e8-32d0-4e88-813d-e7631ddf8a84','single_choice','以下哪种拓扑结构属于广播型网络？','[{\"option\": \"A\", \"description\": \"星型拓扑\"}, {\"option\": \"B\", \"description\": \"总线型拓扑\"}, {\"option\": \"C\", \"description\": \"环形拓扑\"}, {\"option\": \"D\", \"description\": \"网状拓扑\"}]','B','参考资料指出，广播型网络的典型结构包括总线型网络（多点共享链路），而星型、环形、网状属于点到点结构。','2025-06-15 13:44:37',NULL,NULL),(40,2,'计算机网络','d5a757e8-32d0-4e88-813d-e7631ddf8a84','single_choice','网络协议的三要素是？','[{\"option\": \"A\", \"description\": \"数据格式、编码、信号电平\"}, {\"option\": \"B\", \"description\": \"语法、语义、时序\"}, {\"option\": \"C\", \"description\": \"控制信息、速度匹配、同步\"}, {\"option\": \"D\", \"description\": \"接口、服务、协议\"}]','B','协议是通信规则的集合，其核心三要素为语法（格式）、语义（含义）、时序（顺序），参考资料明确提及此定义。','2025-06-15 13:44:37',NULL,NULL),(41,2,'计算机网络','d5a757e8-32d0-4e88-813d-e7631ddf8a84','single_choice','以下哪项不属于分层结构的优点？','[{\"option\": \"A\", \"description\": \"各层间相互独立\"}, {\"option\": \"B\", \"description\": \"促进标准化工作\"}, {\"option\": \"C\", \"description\": \"增加系统复杂性\"}, {\"option\": \"D\", \"description\": \"易于实现和维护\"}]','C','参考资料指出分层结构的优点包括各层独立、促进标准化、易于实现和维护，而“增加复杂性”是缺点，因此不属于优点。','2025-06-15 13:44:37',NULL,NULL),(42,2,'计算机网络','d5a757e8-32d0-4e88-813d-e7631ddf8a84','single_choice','用于连接不同网络并选择传输路径的设备是？','[{\"option\": \"A\", \"description\": \"集线器\"}, {\"option\": \"B\", \"description\": \"路由器\"}, {\"option\": \"C\", \"description\": \"网桥\"}, {\"option\": \"D\", \"description\": \"交换机\"}]','B','路由器工作在网络层，负责不同网络间的寻址和路径选择，是连接广域网和局域网的关键设备。','2025-06-15 13:44:37',NULL,NULL),(43,2,'计算机网络','d5a757e8-32d0-4e88-813d-e7631ddf8a84','single_choice','IP电话主要使用哪种数据交换技术？','[{\"option\": \"A\", \"description\": \"电路交换\"}, {\"option\": \"B\", \"description\": \"报文交换\"}, {\"option\": \"C\", \"description\": \"分组交换\"}, {\"option\": \"D\", \"description\": \"信元交换\"}]','C','参考资料提到IP电话基于分组交换技术，将语音数据分割为小分组传输，提高效率和灵活性。','2025-06-15 13:44:37',NULL,NULL),(44,2,'计算机网络','d5a757e8-32d0-4e88-813d-e7631ddf8a84','single_choice','衡量网络中数据传输速率的指标是？','[{\"option\": \"A\", \"description\": \"带宽\"}, {\"option\": \"B\", \"description\": \"时延\"}, {\"option\": \"C\", \"description\": \"吞吐量\"}, {\"option\": \"D\", \"description\": \"速率\"}]','D','速率（比特率）是单位时间内传输的二进制位数，直接衡量数据传输的快慢，是核心性能指标。','2025-06-15 13:44:37',NULL,NULL);
+/*!40000 ALTER TABLE `ai_question` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `course`
 --
 
@@ -100,7 +135,7 @@ CREATE TABLE `course_video` (
   PRIMARY KEY (`id`),
   KEY `idx_course_id` (`course_id`),
   KEY `idx_parent_id` (`parent_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='课程目录与视频表';
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='课程目录与视频表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -109,7 +144,7 @@ CREATE TABLE `course_video` (
 
 LOCK TABLES `course_video` WRITE;
 /*!40000 ALTER TABLE `course_video` DISABLE KEYS */;
-INSERT INTO `course_video` VALUES (1,1,0,1,'引言',NULL,NULL,1,'2025-06-08 08:09:54','2025-06-08 08:09:54'),(2,1,1,2,'常见的数据结构','http://sxh8oib6z.hb-bkt.clouddn.com/videos/1/2_1749372129693.mp4',NULL,1,'2025-06-08 08:42:01','2025-06-08 08:42:53'),(8,5,0,1,'引言',NULL,NULL,1,'2025-06-09 08:20:46','2025-06-09 08:20:46'),(9,5,8,2,'简介','http://sxh8oib6z.hb-bkt.clouddn.com/videos/5/9_1749457256228.mp4',NULL,1,'2025-06-09 08:20:51','2025-06-09 08:22:17');
+INSERT INTO `course_video` VALUES (1,1,0,1,'引言',NULL,NULL,1,'2025-06-08 08:09:54','2025-06-08 08:09:54'),(8,5,0,1,'引言',NULL,NULL,1,'2025-06-09 08:20:46','2025-06-09 08:20:46'),(9,5,8,2,'简介','http://sxh8oib6z.hb-bkt.clouddn.com/videos/5/9_39ca918d-01ec-4ba6-9af3-910de44cab5d.mp4',NULL,1,'2025-06-09 08:20:51','2025-06-15 13:16:08'),(11,1,1,2,'112','',NULL,1,'2025-06-17 07:26:05','2025-06-17 07:38:45');
 /*!40000 ALTER TABLE `course_video` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -131,7 +166,7 @@ CREATE TABLE `homework` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_course_id` (`course_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='作业表';
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='作业表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -140,7 +175,7 @@ CREATE TABLE `homework` (
 
 LOCK TABLES `homework` WRITE;
 /*!40000 ALTER TABLE `homework` DISABLE KEYS */;
-INSERT INTO `homework` VALUES (2,1,'新作业 - 2025年6月8日 下午4:45:14','请填写作业描述...','2025-06-08 00:45:14','2025-06-15 00:45:14','2025-06-08 08:45:14','2025-06-08 08:45:23'),(3,1,'新作业 - 2025年6月9日 下午4:15:34','请填写作业描述...','2025-06-09 00:15:35','2025-06-16 00:15:35','2025-06-09 08:15:34','2025-06-09 08:15:52'),(4,1,'新作业 - 2025年6月9日 下午4:16:45','请填写作业描述...','2025-06-09 00:16:46','2025-06-16 00:16:46','2025-06-09 08:16:45','2025-06-11 14:51:38');
+INSERT INTO `homework` VALUES (37,1,'新作业 - 2025年6月15日 下午9:08:28','请填写作业描述...','2025-06-15 05:08:28','2025-06-22 05:08:28','2025-06-15 13:08:28','2025-06-15 13:08:45');
 /*!40000 ALTER TABLE `homework` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -161,7 +196,7 @@ CREATE TABLE `homework_question` (
   `score` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_homework_id` (`homework_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='作业问题表';
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='作业问题表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -170,7 +205,7 @@ CREATE TABLE `homework_question` (
 
 LOCK TABLES `homework_question` WRITE;
 /*!40000 ALTER TABLE `homework_question` DISABLE KEYS */;
-INSERT INTO `homework_question` VALUES (2,2,'新的选择题','choice','[{\"text\": \"a\"}, {\"text\": \"a\"}, {\"text\": \"a\"}, {\"text\": \"a\"}]',NULL,NULL),(3,3,'新的选择题','choice','[{\"text\": \"a\"}, {\"text\": \"b\"}, {\"text\": \"c\"}, {\"text\": \"d\"}]',NULL,NULL),(10,4,'新的选择题','choice','[{\"text\": \"a\"}, {\"text\": \"b\"}, {\"text\": \"c\"}, {\"text\": \"d\"}]','D','6');
+INSERT INTO `homework_question` VALUES (18,37,'萨空了的节目你离开','programming',NULL,NULL,'10'),(19,37,'新的选阿文择题adsfa','choice','[{\"text\": \"a\"}, {\"text\": \"d\"}, {\"text\": \"d\"}, {\"text\": \"d\"}]','C','5');
 /*!40000 ALTER TABLE `homework_question` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -194,7 +229,7 @@ CREATE TABLE `homework_submission` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_homework_student` (`homework_id`,`student_id`),
   KEY `idx_student_id` (`student_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='学生作业提交表';
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='学生作业提交表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -203,7 +238,7 @@ CREATE TABLE `homework_submission` (
 
 LOCK TABLES `homework_submission` WRITE;
 /*!40000 ALTER TABLE `homework_submission` DISABLE KEYS */;
-INSERT INTO `homework_submission` VALUES (1,2,2,2,NULL,'{\"2\": \"D\"}','2025-06-08 13:03:24','2025-06-08 08:53:14','2025-06-08 13:03:23'),(4,4,2,2,NULL,'{\"4\": \"D\"}','2025-06-09 08:19:21','2025-06-09 08:19:21','2025-06-09 08:19:21');
+INSERT INTO `homework_submission` VALUES (9,37,2,2,0,'{\"18\": {\"file\": {\"url\": \"http://sxh8oib6z.hb-bkt.clouddn.com/homework/b49b87bb-fe77-4cc4-abb6-abfa48df9e72.json\", \"name\": \"1.json\"}, \"text\": \"\"}, \"19\": \"D\"}','2025-06-15 13:09:28','2025-06-15 13:09:27','2025-06-15 13:09:27');
 /*!40000 ALTER TABLE `homework_submission` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -223,7 +258,7 @@ CREATE TABLE `student_video_progress` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_student_video` (`student_id`,`video_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='学生视频学习进度表';
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='学生视频学习进度表';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -232,7 +267,7 @@ CREATE TABLE `student_video_progress` (
 
 LOCK TABLES `student_video_progress` WRITE;
 /*!40000 ALTER TABLE `student_video_progress` DISABLE KEYS */;
-INSERT INTO `student_video_progress` VALUES (1,2,2,55,'2025-06-08 08:44:39','2025-06-10 02:10:12');
+INSERT INTO `student_video_progress` VALUES (1,2,2,116,'2025-06-08 08:44:39','2025-06-15 12:47:55');
 /*!40000 ALTER TABLE `student_video_progress` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -265,7 +300,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,'XIAOLQ','$2a$10$miyohcW5UXtEMpH2C2X2OeP7P8X6tHf6eGEvwq6JKRKf9FAhhXNkS','2204240513@mail.wtu.edu.cn',2,'xiaolq',NULL,'2025-06-08 07:55:21','2025-06-08 07:55:21'),(2,'2204240513','$2a$10$kn/3mCboYeBHyoa8dj7wJ.4Ea7Qlzs.XCeeVu7oAwvWUM8hRrltdW','3061784569@qq.com',1,'spl','http://sxh8oib6z.hb-bkt.clouddn.com/avatars/2_1749457544611.png','2025-06-08 07:55:32','2025-06-08 07:55:32'),(3,'0000','$2a$10$aMC3Ey3qr41PCJ3Agg5nbujF3XN/EEhEfrwzuVHJgkNd8NQUYZgui','sunpeiling502@gmail.com',2,'spl',NULL,'2025-06-09 07:45:51','2025-06-09 07:45:51');
+INSERT INTO `user` VALUES (1,'XIAOLQ','$2a$10$miyohcW5UXtEMpH2C2X2OeP7P8X6tHf6eGEvwq6JKRKf9FAhhXNkS','2204240513@mail.wtu.edu.cn',2,'xiaolq','http://sxh8oib6z.hb-bkt.clouddn.com/avatars/1_1750146255683.png','2025-06-08 07:55:21','2025-06-08 07:55:21'),(2,'2204240513','$2a$10$kn/3mCboYeBHyoa8dj7wJ.4Ea7Qlzs.XCeeVu7oAwvWUM8hRrltdW','3061784569@qq.com',1,'spl','http://sxh8oib6z.hb-bkt.clouddn.com/avatars/2_1749457544611.png','2025-06-08 07:55:32','2025-06-08 07:55:32'),(3,'0000','$2a$10$aMC3Ey3qr41PCJ3Agg5nbujF3XN/EEhEfrwzuVHJgkNd8NQUYZgui','sunpeiling502@gmail.com',2,'spl',NULL,'2025-06-09 07:45:51','2025-06-09 07:45:51');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -278,41 +313,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-06-11 22:55:30
-
---
--- Table structure for table `ai_question`
---
-
-DROP TABLE IF EXISTS `ai_question`;
-CREATE TABLE `ai_question` (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '问题ID',
-  `student_id` bigint NOT NULL COMMENT '学生ID',
-  `topic` varchar(255) NOT NULL COMMENT '生成主题',
-  `batch_id` varchar(255) DEFAULT NULL COMMENT '生成批次ID',
-  `question_type` varchar(50) NOT NULL COMMENT '问题类型 (e.g., single_choice, text_answer)',
-  `question_text` text NOT NULL COMMENT '问题内容',
-  `options` json DEFAULT NULL COMMENT '选项 (for choice questions)',
-  `correct_answer` text COMMENT '正确答案',
-  `analysis` text COMMENT '题目解析',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_student_id` (`student_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI生成问题表';
-
---
--- Table structure for table `ai_submission`
---
-
-DROP TABLE IF EXISTS `ai_submission`;
-CREATE TABLE `ai_submission` (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '提交ID',
-  `ai_question_id` bigint NOT NULL COMMENT 'AI问题ID',
-  `student_id` bigint NOT NULL COMMENT '学生ID',
-  `student_answer` text COMMENT '学生答案',
-  `is_correct` tinyint(1) DEFAULT NULL COMMENT '是否正确',
-  `submitted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '提交时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_ai_question_id` (`ai_question_id`),
-  KEY `idx_student_id` (`student_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI问题提交表';
+-- Dump completed on 2025-06-17 15:46:24
