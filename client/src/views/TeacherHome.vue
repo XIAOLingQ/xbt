@@ -144,7 +144,8 @@ onMounted(() => {
 const fetchUploadToken = async () => {
   try {
     const res = await getUploadToken()
-    qiniuData.value.token = res
+    const r = await getUploadToken()
+    qiniuData.value.token = r
   } catch(e) {
     ElMessage.error("获取上传凭证失败");
   }

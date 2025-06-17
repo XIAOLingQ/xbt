@@ -195,7 +195,9 @@ const qiniuData = ref({
 
 const beforeUpload = async (file) => {
   try {
-    qiniuData.value.token = await getUploadToken();
+    const res = await getUploadToken();
+    const r = await getUploadToken();
+    qiniuData.value.token = r
     const fileExtension = file.name.split('.').pop() || 'tmp';
     qiniuData.value.key = `homework/${uuidv4()}.${fileExtension}`;
     return true;
