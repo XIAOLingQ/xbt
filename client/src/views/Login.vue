@@ -1,5 +1,13 @@
 <template>
+  
   <div class="login-container">
+    <Particles
+      id="tsparticles"
+      class="login-bg"
+      :particlesInit="particlesInit"
+      :options="particlesOptions"
+    />
+      
     <el-card class="login-card">
       <template #header>
         <div class="card-header">
@@ -48,6 +56,11 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
+import { loadFull } from 'tsparticles'
+
+const particlesInit = async (engine) => {
+  await loadFull(engine)
+}
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -58,6 +71,54 @@ const form = reactive({
   username: '',
   password: ''
 })
+const particlesOptions = {
+  background: {
+    color: {
+      value: "transparent"
+    }
+  },
+  particles: {
+    number: {
+      value: 50
+    },
+    color: {
+      value: "#888888"
+    },
+    shape: {
+      type: "circle"
+    },
+    opacity: {
+      value: 0.5
+    },
+    size: {
+      value: 2
+    },
+    links: {
+      enable: true,
+      color: "#cccccc",
+      distance: 150,
+      opacity: 0.4,
+      width: 1
+    },
+    move: {
+      enable: true,
+      speed: 3
+    }
+  },
+  interactivity: {
+    events: {
+      onHover: {
+        enable: true,
+        mode: "grab"
+      },
+      onClick: {
+        enable: true,
+        mode: "push"
+      }
+    }
+  }
+};
+
 
 const rules = {
   username: [
@@ -91,12 +152,21 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
+.login-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;  /* 一定要比登录框低 */
+}
+
 .login-container {
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #72edf2 10%, #5151e5 100%);
+  /* background: linear-gradient(135deg, #72edf2 10%, #5151e5 100%); */
 }
 
 .login-card {
