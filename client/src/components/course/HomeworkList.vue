@@ -5,6 +5,7 @@
     </div>
     <el-table :data="homeworkList" style="width: 100%" v-loading="loading">
       <el-table-column prop="title" label="作业标题" />
+      <el-table-column prop="startTime" label="开始时间" width="200"/>
       <el-table-column prop="endTime" label="截止时间" width="200"/>
       <el-table-column label="状态与得分" width="180">
         <template #default="scope">
