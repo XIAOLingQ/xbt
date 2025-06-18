@@ -27,9 +27,7 @@ public class ProgressController {
         progressDTO.setStudentId(studentId);
         progressDTO.setVideoId(request.getVideoId());
         progressDTO.setWatchDuration(request.getWatchDuration());
-
         progressService.updateVideoProgress(progressDTO);
-
         return Result.success();
     }
 }
