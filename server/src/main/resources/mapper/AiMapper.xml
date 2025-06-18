@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xbt.server.mapper.AiMapper">
+
+    <insert id="insertAiQuestion" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_question (student_id, topic, batch_id, question_type, question_text, options, correct_answer, analysis, created_at)
+        VALUES (#{studentId}, #{topic}, #{batchId}, #{questionType}, #{questionText}, #{options}, #{correctAnswer}, #{analysis}, NOW())
+    </insert>
+
+    <insert id="insertAiSubmission" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_submission (ai_question_id, student_id, student_answer, is_correct)
+        VALUES (#{aiQuestionId}, #{studentId}, #{studentAnswer}, #{isCorrect})
+    </insert>
+
+    <select id="selectHistoryByStudentId" resultType="com.xbt.server.pojo.vo.AiQuestionHistoryVO">
+        SELECT *
+        FROM ai_question
+        WHERE student_id = #{studentId} AND batch_id = #{batchId}
+        ORDER BY id ASC
+    </select>
+
+    <select id="selectTopicHistoryByStudentId" resultType="com.xbt.server.pojo.vo.AiTopicHistoryVO">
+        SELECT
+            topic,
+            batch_id AS batchId,
+            MAX(created_at) AS createdAt,
+            COUNT(*) AS totalCount,
+            COUNT(CASE WHEN is_correct IS NOT NULL THEN 1 END) AS completedCount
+        FROM
+            ai_question
+        WHERE
+            student_id = #{studentId}
+        GROUP BY
+            topic, batch_id
+        ORDER BY
+            createdAt DESC
+    </select>
+
+    <select id="selectQuestionById" resultType="com.xbt.server.pojo.entity.AiQuestion">
+        SELECT * FROM ai_question WHERE id = #{id}
+    </select>
+
+    <update id="updateQuestionAnswer">
+        UPDATE ai_question
+        SET
+            student_answer = #{studentAnswer},
+            is_correct = #{isCorrect}
+        WHERE
+            id = #{id}
+    </update>
+
+</mapper> 

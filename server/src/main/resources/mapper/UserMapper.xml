@@ -43,4 +43,8 @@
     <select id="findByEmail" resultMap="userMap">
         SELECT * FROM user WHERE email = #{email}
     </select>
+
+    <select id="selectById" resultType="com.xbt.server.pojo.entity.User">
+        SELECT * FROM user WHERE id = #{id}
+    </select>
 </mapper> 

@@ -22,6 +22,7 @@
                     >
                         <el-button type="primary">点击上传</el-button>
                     </el-upload>
+                    <br/>
                     <span v-if="questionFileList.length > 0" class="file-name">
                         <a :href="questionFileList[0].url" target="_blank">{{ questionFileList[0].name }}</a>
                     </span>
@@ -146,7 +147,9 @@ const answerFileList = computed(() => {
 
 const beforeUpload = async (file) => {
   try {
-    qiniuData.value.token = await getUploadToken();
+    const res = await getUploadToken();
+    const r = await getUploadToken();
+    qiniuData.value.token = r;
     const fileExtension = file.name.split('.').pop() || 'tmp';
     qiniuData.value.key = `homework/${uuidv4()}.${fileExtension}`;
     return true;

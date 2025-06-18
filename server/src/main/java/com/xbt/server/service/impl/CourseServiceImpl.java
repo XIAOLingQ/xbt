@@ -31,13 +31,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-// --- 引入所有需要的Mapper ---
 import com.xbt.server.mapper.HomeworkSubmissionMapper;
 import com.xbt.server.mapper.HomeworkMapper;
 import com.xbt.server.mapper.StudentVideoProgressMapper;
 import com.xbt.server.mapper.CourseVideoMapper;
 import com.xbt.server.mapper.CourseStudentMapper;
+import com.xbt.server.pojo.PageBean;
 
 @Service
 public class CourseServiceImpl implements CourseService {
@@ -141,6 +140,21 @@ public class CourseServiceImpl implements CourseService {
         List<StudentCourseVO> list = courseMapper.getCoursesByStudentId(studentId);
         PageInfo<StudentCourseVO> pageInfo = new PageInfo<>(list);
         return new PageVO<>(pageInfo.getTotal(), pageInfo.getList());
+    }
+
+    @Override
+    public PageBean<CourseVO> getAllCourses(Integer page, Integer pageSize) {
+        PageHelper.startPage(page, pageSize);
+        List<Course> courseList = courseMapper.findAll();
+        PageInfo<Course> pageInfo = new PageInfo<>(courseList);
+
+        List<CourseVO> courseVOList = pageInfo.getList().stream().map(course -> {
+            User teacher = userMapper.findById(course.getTeacherId());
+            String teacherName = (teacher != null) ? teacher.getRealName() : "未知教师";
+            return convertToCourseVO(course, teacherName);
+        }).collect(Collectors.toList());
+
+        return new PageBean<>(pageInfo.getTotal(), courseVOList);
     }
 
     @Override

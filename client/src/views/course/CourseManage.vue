@@ -73,11 +73,7 @@
                     <el-form-item v-if="currentNode.type === 2" label="视频">
                         <el-upload
                           class="video-uploader"
-                          :action="qiniuData.uploadUrl"
-                          :data="qiniuData"
-                          :on-success="handleVideoSuccess"
-                          :on-error="handleVideoError"
-                          :before-upload="beforeVideoUpload"
+                          :http-request="uploadVideoHttpRequest"
                           :show-file-list="false"
                           :disabled="!currentNode.id"
                         >
@@ -86,8 +82,16 @@
                             <div class="el-upload__tip" v-if="!currentNode.id">
                               请先保存当前课时，然后再上传视频。
                             </div>
+                            <div v-if="isUploading" class="upload-progress">
+                              <el-progress 
+                                :percentage="uploadProgress"
+                                :format="() => `${formatFileSize(uploadedSize)}/${formatFileSize(totalSize)} (${uploadProgress}%)`"
+                                status="success"
+                              />
+                            </div>
                           </template>
                         </el-upload>
+                        <br/>
                         <div v-if="currentNode.url" class="video-preview">
                             <div class="video-url">
                                 视频链接: <el-link :href="currentNode.url" type="primary" target="_blank">{{ currentNode.url }}</el-link>
@@ -121,18 +125,25 @@
         </div>
         <el-table :data="homeworkList" style="width: 100%" v-loading="homeworkLoading">
             <el-table-column prop="title" label="作业标题" />
-            <el-table-column prop="startTime" label="开始时间" />
+
             <el-table-column prop="endTime" label="结束时间" />
-            <el-table-column label="操作" width="150">
+            <el-table-column label="操作" width="240">
                 <template #default="scope">
-                    <el-button size="small" type="primary" @click="handleEditHomework(scope.row)">编辑</el-button>
-                    <el-button size="small" type="danger" @click="handleDeleteHomework(scope.row)">删除</el-button>
+                    <el-button-group>
+                        <el-button size="small" type="success" @click="handleGradeHomework(scope.row)">批改</el-button>
+                        <el-button size="small" type="primary" @click="handleEditHomework(scope.row)">编辑</el-button>
+                        <el-button size="small" type="danger" @click="handleDeleteHomework(scope.row)">删除</el-button>
+                    </el-button-group>
                 </template>
             </el-table-column>
         </el-table>
         <el-empty v-if="homeworkList.length === 0" description="暂无作业，快去新建一个吧！"></el-empty>
       </el-tab-pane>
     </el-tabs>
+
+    <!-- 聊天组件 -->
+    <ChatContainer v-if="props.courseId" :course-id="props.courseId" />
+
   </div>
 </template>
 
@@ -142,8 +153,10 @@ import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
 import { useUserStore } from '../../stores/user';
+import ChatContainer from '@/components/common/ChatContainer.vue';
 import { getCourseChapterTree, saveOrUpdateChapter, deleteChapter, getUploadToken, reorderChapters } from '@/api/courseChapter';
 import { getHomeworkList, saveHomework, deleteHomework } from '@/api/homework';
+import axios from 'axios';
 
 const userStore = useUserStore()
 // 假定API文件已更新
@@ -194,10 +207,23 @@ const homeworkLoading = ref(false);
 
 // --- 七牛云上传相关 ---
 const qiniuData = ref({
-  token: '',
-  key: '',
   uploadUrl: 'http://upload-z1.qiniup.com/' // 默认为华南z2区，请根据你的存储区域修改
 });
+
+// 添加用于格式化文件大小的函数
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+// 添加上传进度相关的响应式变量
+const uploadProgress = ref(0);
+const isUploading = ref(false);
+const uploadedSize = ref(0);
+const totalSize = ref(0);
 
 onMounted(async () => {
   await fetchChapterTree();
@@ -235,8 +261,10 @@ const fetchChapterTree = async () => {
 const fetchUploadToken = async () => {
     try {
         if(userStore.isTeacher) {
-        const res = await getUploadToken();
-        qiniuData.value.token = res;
+        // This is now handled within the upload request, so this pre-fetching can be removed or simplified.
+        // For now, let's keep it but it's not strictly necessary for the upload itself.
+        const r = await getUploadToken();
+        qiniuData.value.token = r; // This might be stale, real token is fetched on-demand.
       }
     } catch(e) {
       console.error(e);
@@ -244,7 +272,7 @@ const fetchUploadToken = async () => {
     }
 };
 
-const goBack = () => router.back();
+const goBack = () => router.push({ name: 'home' });
 
 const addChapter = () => {
   currentNode.value = {
@@ -368,41 +396,76 @@ const handleNodeDrop = async (draggingNode, dropNode, dropType, ev) => {
 };
 
 // --- 视频上传钩子 ---
-const beforeVideoUpload = async (file) => {
+const uploadVideoHttpRequest = async ({ file }) => {
+    const isMp4 = file.type === 'video/mp4';
+    if (!isMp4) {
+        ElMessage.error('请上传 MP4 格式的视频文件！');
+        return;
+    }
+
     const isLt500M = file.size / 1024 / 1024 < 500;
 
     if (!isLt500M) {
         ElMessage.error('上传视频大小不能超过 500MB!');
-        return false;
+        return;
     }
 
     if (!currentNode.value.id) {
         ElMessage.error('请先保存课时信息，然后再上传视频！');
-        return false;
+        return;
     }
-    if (!qiniuData.value.token) {
-        ElMessage.error('未能获取上传凭证，无法上传！');
-        await fetchUploadToken(); // 尝试重新获取
-        if(!qiniuData.value.token) return false; // 还是失败则阻止上传
+
+    try {
+        const token = await getUploadToken();
+        if (!token) {
+            ElMessage.error('未能获取上传凭证，无法上传！');
+            return;
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const key = `videos/${props.courseId}/${currentNode.value.id}_${Date.now()}${fileExt ? '.' + fileExt : ''}`;
+        
+        const formData = new FormData();
+        formData.append('token', token);
+        formData.append('key', key);
+        formData.append('file', file);
+        
+        isUploading.value = true;
+        uploadProgress.value = 0;
+
+        const res = await axios.post(qiniuData.value.uploadUrl, formData, {
+            onUploadProgress: (progressEvent) => {
+                totalSize.value = progressEvent.total;
+                uploadedSize.value = progressEvent.loaded;
+                uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            }
+        });
+
+        isUploading.value = false;
+        const fileUrl = `${QINIU_DOMAIN}/${res.data.key}`;
+        currentNode.value.url = fileUrl;
+        ElMessage.success('视频上传成功');
+        
+        setTimeout(() => {
+            uploadProgress.value = 0;
+        }, 3000);
+
+    } catch (err) {
+        isUploading.value = false;
+        uploadProgress.value = 0;
+        ElMessage.error('视频上传失败');
+        console.error(err);
     }
-    // 从原始文件名中提取后缀
-    const fileExt = file.name.split('.').pop();
-    // 重新构造文件名，避免中文或特殊字符带来的URL编码问题
-    qiniuData.value.key = `videos/${props.courseId}/${currentNode.value.id}_${Date.now()}${fileExt ? '.' + fileExt : ''}`;
-    return true;
 };
 
-const handleVideoSuccess = (res, file) => {
-    const videoUrl = `${QINIU_DOMAIN}/${res.key}`; 
-    currentNode.value.url = videoUrl;
-    ElMessage.success('视频上传成功! 正在保存...');
-    // 上传成功后，自动触发保存
-    saveNode();
-};
-
-const handleVideoError = (err, file, fileList) => {
-    ElMessage.error('视频上传失败');
-    console.error(err);
+const handleGradeHomework = (homework) => {
+    router.push({
+        name: 'HomeworkGrading',
+        params: {
+            courseId: props.courseId,
+            homeworkId: homework.id
+        }
+    });
 };
 
 const handleCreateHomework = async () => {
@@ -458,50 +521,182 @@ const handleDeleteHomework = (row) => {
 </script>
 
 <style scoped>
-.el-tree {
-  --el-tree-node-indent: 24px;
-}
 .course-manage-container {
-  padding: 20px;
+  padding: 0px 20px 20px;
+  --primary-color: #6996f8;
+  --primary-light: #ebf2ff;
+  --primary-lighter: #f5f8ff;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --background-color: #f8fafc;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  min-height: 100vh;
+  position: relative; /* 为FAB按钮定位 */
 }
+
 .page-header {
-    margin-bottom: 20px;
+  margin-bottom: 10px;
+  padding-bottom: 15px;
+  position: relative;
 }
+
+.page-header:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.box-card {
+  border-radius: 12px;
+  border: none;
+  box-shadow: var(--card-shadow);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  position: relative;
+}
+
+.box-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.box-card:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-color);
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-color);
 }
+
+.el-tree {
+  --el-tree-node-indent: 24px;
+  padding: 0 16px;
+}
+
 .custom-tree-node {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 14px;
-  padding-right: 8px;
-}
-.video-preview {
-    margin-top: 20px;
+  padding: 6px 8px;
+  transition: all 0.3s ease;
 }
 
-.video-url {
-    margin-bottom: 15px;
+.custom-tree-node:hover {
+  background-color: var(--primary-lighter);
+  border-radius: 4px;
+}
+
+.el-form {
+  padding: 20px;
+}
+
+.el-form-item {
+  margin-bottom: 20px;
+}
+
+.el-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.el-button--primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+}
+
+.el-button--primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -2px rgba(37, 99, 235, 0.1);
+  transform: translateY(-1px);
+}
+
+.video-preview {
+  margin-top: 20px;
 }
 
 .video-container {
-    position: relative;
-    width: 100%;
-    max-width: 800px;
-    background: #000;
-    padding-top: 56.25%; /* 16:9 宽高比 */
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  background: #000;
+  padding-top: 56.25%;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .video-player {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
-</style> 
+
+.upload-progress {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.video-uploader {
+  width: 100%;
+  max-width: 400px;
+}
+
+.el-upload__tip {
+  width: 100%;
+  max-width: 400px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.el-table {
+  margin-top: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .course-manage-container {
+    padding: 20px 15px;
+  }
+  
+  .box-card {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  
+  .el-col {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+}
+</style>

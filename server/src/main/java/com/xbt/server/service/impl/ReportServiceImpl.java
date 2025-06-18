@@ -1,88 +1,55 @@
 package com.xbt.server.service.impl;
 
-import com.xbt.server.mapper.CourseMapper;
-import com.xbt.server.mapper.HomeworkMapper;
-import com.xbt.server.mapper.HomeworkSubmissionMapper;
-import com.xbt.server.mapper.StudentVideoProgressMapper;
-import com.xbt.server.mapper.CourseVideoMapper;
-import com.xbt.server.pojo.vo.LearningReportVO;
-import com.xbt.server.pojo.vo.StudentCourseVO;
+import com.xbt.server.mapper.*;
+import com.xbt.server.pojo.vo.StudentReportVO;
 import com.xbt.server.service.ReportService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import javax.annotation.Resource;
+
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService {
 
-    @Resource
-    private CourseMapper courseMapper;
-
-    @Resource
-    private HomeworkSubmissionMapper homeworkSubmissionMapper;
-
-    @Resource
-    private HomeworkMapper homeworkMapper;
-
-    @Resource
-    private StudentVideoProgressMapper studentVideoProgressMapper;
-
-    @Resource
-    private CourseVideoMapper courseVideoMapper;
-
-    // TODO: 后面还需要注入 CourseVideoMapper 和 StudentVideoProgressMapper
+    private final CourseStudentMapper courseStudentMapper;
+    private final HomeworkMapper homeworkMapper;
+    private final HomeworkSubmissionMapper homeworkSubmissionMapper;
+    private final StudentVideoProgressMapper studentVideoProgressMapper;
 
     @Override
-    public LearningReportVO generateStudentReport(Long studentId) {
+    public StudentReportVO getStudentReport(Long studentId) {
+        StudentReportVO report = new StudentReportVO();
 
-        // --- 核心指标计算 ---
+        // 1. 总学习时长
+        Long totalDurationSeconds = Optional
+                .ofNullable(studentVideoProgressMapper.sumTotalWatchTimeByStudentId(studentId)).orElse(0L);
+        report.setTotalStudyDurationMinutes(totalDurationSeconds / 60.0);
 
-        // 1. 获取学生加入的总课程数
-        int totalCoursesCount = courseMapper.countCoursesByStudentId(studentId);
+        // 2. 课程完成情况
+        report.setTotalCoursesCount(courseStudentMapper.countTotalCoursesByStudentId(studentId));
+        report.setCompletedCoursesCount(courseStudentMapper.countCompletedCoursesByStudentId(studentId));
 
-        // 2. 获取学生已提交的作业数和总作业数
-        int completedHomeworkCount = homeworkSubmissionMapper.countSubmittedByStudentId(studentId);
-        int totalHomeworkCount = homeworkMapper.countTotalHomeworksByStudentId(studentId);
-
-        // 3. 计算平均分
-        Double averageScore = homeworkSubmissionMapper.getAverageScoreByStudentId(studentId);
-
-        // 4. 获取总学习时长
-        Long totalStudyDurationSeconds = studentVideoProgressMapper.sumTotalWatchTimeByStudentId(studentId);
-        long totalStudyDurationMinutes = (totalStudyDurationSeconds != null) ? totalStudyDurationSeconds / 60 : 0;
-
-        // 5. 计算完成的课程数
-        List<StudentCourseVO> courses = courseMapper.getCoursesByStudentId(studentId);
-        int completedCoursesCount = 0;
-        final double COMPLETION_THRESHOLD = 0.9;
-
-        for (StudentCourseVO course : courses) {
-            Long courseTotalDuration = courseVideoMapper.sumTotalDurationByCourseId(course.getId());
-            Long studentWatchDuration = studentVideoProgressMapper.sumWatchTimeByStudentAndCourse(studentId,
-                    course.getId());
-
-            if (courseTotalDuration != null && courseTotalDuration > 0 && studentWatchDuration != null) {
-                double progress = (double) studentWatchDuration / courseTotalDuration;
-                if (progress >= COMPLETION_THRESHOLD) {
-                    completedCoursesCount++;
-                }
-            }
+        // 3. 作业情况
+        List<Long> courseIds = courseStudentMapper.getCourseIdsByStudentId(studentId);
+        if (courseIds == null || courseIds.isEmpty()) {
+            report.setTotalHomeworkCount(0);
+        } else {
+            report.setTotalHomeworkCount(homeworkMapper.countHomeworksByCourseIds(courseIds));
         }
 
-        // --- 学习趋势计算 ---
-        // TODO: 待实现
+        report.setCompletedHomeworkCount(homeworkSubmissionMapper.countCompletedSubmissionsByStudentId(studentId));
+        Double avgScore = Optional.ofNullable(homeworkSubmissionMapper.getAverageScoreByStudentId(studentId))
+                .orElse(0.0);
+        report.setAverageScore(avgScore);
 
-        // --- 各课程进度计算 ---
-        // TODO: 待实现
+        // 4. 学习趋势 (最近30天)
+        LocalDate thirtyDaysAgo = LocalDate.now().minusDays(30);
+        report.setStudyTrend(studentVideoProgressMapper.getStudyTrendByStudentId(studentId, thirtyDaysAgo.toString()));
 
-        // 使用 Builder 模式构建返回对象
-        return LearningReportVO.builder()
-                .totalCoursesCount(totalCoursesCount)
-                .completedCoursesCount(completedCoursesCount)
-                .totalHomeworkCount(totalHomeworkCount)
-                .completedHomeworkCount(completedHomeworkCount)
-                .averageScore(averageScore != null ? averageScore : 0.0)
-                .totalStudyDurationMinutes(totalStudyDurationMinutes)
-                .build();
+        return report;
     }
 }

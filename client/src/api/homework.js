@@ -56,3 +56,38 @@ export const submitHomework = (data) => {
     data
   });
 }; 
+
+/**
+ * 获取作业提交列表
+ * @param {number} homeworkId - 作业ID
+ */
+export const getHomeworkSubmissions = (homeworkId) => {
+  return request({
+    url: `/homework/${homeworkId}/submissions`,
+    method: 'get'
+  });
+};
+
+/**
+ * 获取作业提交详情
+ * @param {number} submissionId - 提交ID
+ */
+export const getSubmissionDetail = (submissionId) => {
+  return request({
+    url: `/homework/submission/${submissionId}`,
+    method: 'get'
+  });
+};
+
+/**
+ * 提交批改结果
+ * @param {number} submissionId - 提交ID
+ * @param {object} data - 批改数据
+ */
+export const gradeSubmission = (submissionId, data) => {
+  return request({
+    url: `/homework/submission/${submissionId}/grade`,
+    method: 'post',
+    data
+  });
+}; 

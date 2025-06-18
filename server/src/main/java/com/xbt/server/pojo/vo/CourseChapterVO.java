@@ -8,7 +8,6 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@JsonInclude(JsonInclude.Include.NON_EMPTY) // 如果children为空，则不序列化
 public class CourseChapterVO {
     private Long id;
     private Long courseId;
@@ -18,5 +17,6 @@ public class CourseChapterVO {
     private String url;
     private Integer duration;
     private Integer orderNum;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) // 仅当children不为空时序列化
     private List<CourseChapterVO> children; // 子节点
 } 

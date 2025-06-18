@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import com.xbt.server.pojo.PageBean;
 
 @RestController
 @RequestMapping("/api/course")
@@ -40,6 +41,17 @@ public class CourseController {
     @GetMapping("/{courseId}")
     public Result<CourseVO> getCourseInfo(@PathVariable Long courseId) {
         return Result.success(courseService.getCourseInfo(courseId));
+    }
+
+    /**
+     * 获取所有课程列表（用于启动页）
+     */
+    @GetMapping("/all")
+    public Result<PageBean<CourseVO>> getAllCourses(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize) {
+        PageBean<CourseVO> courses = courseService.getAllCourses(page, pageSize);
+        return Result.success(courses);
     }
 
     /**

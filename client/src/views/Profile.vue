@@ -36,12 +36,10 @@
         <el-form-item label="头像">
           <el-upload
             class="avatar-uploader"
-            :action="qiniuData.uploadUrl"
-            :data="qiniuData"
             :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-            :before-upload="beforeAvatarUpload"
+            :http-request="uploadHttpRequest"
           >
+          <br/>
             <img v-if="form.avatar" :src="form.avatar" class="avatar" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
@@ -64,6 +62,7 @@ import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import { getUploadToken } from '@/api/file'
+import axios from 'axios'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -73,8 +72,6 @@ const loading = ref(false)
 // --- 七牛云上传相关 ---
 const QINIU_DOMAIN = 'http://sxh8oib6z.hb-bkt.clouddn.com'
 const qiniuData = ref({
-  token: '',
-  key: '',
   uploadUrl: 'http://upload-z1.qiniup.com'
 })
 
@@ -151,35 +148,38 @@ const handleLogout = () => {
   router.push('/')
 }
 
-const handleAvatarSuccess = (res) => {
-  const newAvatarUrl = `${QINIU_DOMAIN}/${res.key}`
-  form.avatar = newAvatarUrl
-  ElMessage.success('头像上传成功!')
-  handleSubmit()
-}
-
-const beforeAvatarUpload = async (file) => {
+const uploadHttpRequest = async ({ file }) => {
   const isImage = file.type.startsWith('image/')
   const isLt2M = file.size / 1024 / 1024 < 2
 
   if (!isImage) {
     ElMessage.error('上传头像图片只能是图片格式!')
-    return false
+    return
   }
   if (!isLt2M) {
     ElMessage.error('上传头像图片大小不能超过 2MB!')
-    return false
+    return
   }
 
   try {
     const token = await getUploadToken()
-    qiniuData.value.token = token
     const fileExt = file.name.split('.').pop() || 'png'
-    qiniuData.value.key = `avatars/${userStore.userInfo.id}_${Date.now()}.${fileExt}`
-    return true
+    const key = `avatars/${userStore.userInfo.id}_${Date.now()}.${fileExt}`
+
+    const formData = new FormData()
+    formData.append('token', token)
+    formData.append('key', key)
+    formData.append('file', file)
+
+    const res = await axios.post(qiniuData.value.uploadUrl, formData)
+
+    const newAvatarUrl = `${QINIU_DOMAIN}/${res.data.key}`
+    form.avatar = newAvatarUrl
+    ElMessage.success('头像上传成功!')
+    await handleSubmit()
   } catch (e) {
-    ElMessage.error('获取上传凭证失败，请重试')
-    return false
+    console.error('Upload failed:', e)
+    ElMessage.error('上传失败，请重试')
   }
 }
 
@@ -196,18 +196,91 @@ onMounted(async () => {
 
 <style scoped>
 .profile-container {
-  padding: 20px;
+  padding: 0px 20px 20px;
+  --primary-color: #6996f8;
+  --primary-light: #ebf2ff;
+  --primary-lighter: #f5f8ff;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --background-color: #f8fafc;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .profile-card {
   max-width: 600px;
   margin: 0 auto;
+  border-radius: 12px;
+  border: none;
+  box-shadow: var(--card-shadow);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  position: relative;
+}
+
+.profile-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.profile-card:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-color);
+  transition: all 0.3s ease;
+}
+
+.profile-card:hover:before {
+  width: 6px;
+}
+
+:deep(.el-button) {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.el-button:hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
+}
+
+:deep(.el-input__wrapper) {
+  transition: all 0.2s ease;
+}
+
+:deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--primary-color) inset;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header h2 {
+  margin: 0;
+  position: relative;
+  padding-bottom: 8px;
+}
+
+.header h2:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 3px;
 }
 
 .avatar-uploader {
