@@ -129,7 +129,7 @@
         <!-- AI靶场 -->
         <div v-if="activeMenu === 'ai_playground'">
           <div class="section-header">
-            <h2>AI靶场 - 练习主题</h2>
+            <h2>AI练题 - 练习主题</h2>
             <el-button type="primary" :icon="Plus" @click="openGenerateDialog">生成新题目</el-button>
           </div>
           
@@ -268,12 +268,20 @@ const filteredCourses = computed(() => {
 })
 
 const fetchStudentReport = async () => {
+  if (reportLoading.value) return; // 防止重复请求
+  
   reportLoading.value = true;
   try {
     const data = await getMyReport();
     reportData.value = data;
+    reportDataLoaded.value = true;
+    
+    // 确保 DOM 更新完成后再初始化图表
     await nextTick();
-    initChart();
+    setTimeout(() => {
+      initChart();
+    }, 100); // 给一个小延迟确保 DOM 完全渲染
+    
   } catch (error) {
     console.error("获取学习报告失败", error);
     ElMessage.error('获取学习报告失败');

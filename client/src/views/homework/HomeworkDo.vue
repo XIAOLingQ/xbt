@@ -73,17 +73,14 @@
               <div class="upload-container">
                 <el-upload
                   v-if="!isSubmitted"
-                  :action="qiniuData.uploadUrl"
-                  :data="qiniuData"
-                  :before-upload="beforeUpload"
-                  :on-success="handleUploadSuccess(question.id)"
-                  :on-error="handleUploadError"
+                  :http-request="(options) => uploadHttpRequest(options, question.id)"
                   :show-file-list="false"
                   :limit="1"
                   class="upload-component"
                 >
                   <el-button type="primary">上传答案文件</el-button>
                 </el-upload>
+                <br/>
                 <span v-if="answers[question.id]?.file" class="file-name">
                   <a :href="answers[question.id].file.url" target="_blank">{{ answers[question.id].file.name }}</a>
                 </span>
@@ -121,9 +118,10 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getHomeworkDetail, submitHomework as apiSubmitHomework } from '@/api/homework';
-import { getUploadToken } from '@/api/courseChapter';
+import { getUploadToken } from '@/api/file';
 import { v4 as uuidv4 } from 'uuid';
 import AiAssistant from '@/components/AiAssistant.vue';
+import axios from 'axios';
 
 const route = useRoute();
 const router = useRouter();
@@ -189,43 +187,39 @@ const formatDescription = (text) => {
 const qiniuData = ref({
   domain: 'http://sxh8oib6z.hb-bkt.clouddn.com',
   uploadUrl: 'http://upload-z1.qiniup.com',
-  token: '',
-  key: '',
 });
 
-const beforeUpload = async (file) => {
+const uploadHttpRequest = async ({ file }, questionId) => {
   try {
-    const res = await getUploadToken();
-    const r = await getUploadToken();
-    qiniuData.value.token = r
+    const token = await getUploadToken();
     const fileExtension = file.name.split('.').pop() || 'tmp';
-    qiniuData.value.key = `homework/${uuidv4()}.${fileExtension}`;
-    return true;
-  } catch(e) {
-    ElMessage.error("获取上传凭证失败");
-    return false;
-  }
-};
+    const key = `homework/${uuidv4()}.${fileExtension}`;
+    
+    const formData = new FormData();
+    formData.append('token', token);
+    formData.append('key', key);
+    formData.append('file', file);
 
-const handleUploadSuccess = (questionId) => (res, file) => {
-  const fileInfo = {
-    url: `${qiniuData.value.domain}/${res.key}`,
-    name: file.name
-  };
-  // 如果之前的答案是字符串，需要转换为对象
-  let answer = answers.value[questionId];
-  if (typeof answer === 'string') {
-    answer = { text: answer };
-  } else if (!answer) {
-    answer = {};
-  }
-  answer.file = fileInfo;
-  answers.value[questionId] = answer;
-  ElMessage.success('文件上传成功');
-};
+    const res = await axios.post(qiniuData.value.uploadUrl, formData);
+    
+    const fileInfo = {
+      url: `${qiniuData.value.domain}/${res.data.key}`,
+      name: file.name
+    };
 
-const handleUploadError = () => {
-  ElMessage.error('上传失败，请检查网络或联系管理员');
+    let answer = answers.value[questionId];
+    if (typeof answer === 'string') {
+      answer = { text: answer };
+    } else if (!answer) {
+      answer = {};
+    }
+    answer.file = fileInfo;
+    answers.value[questionId] = answer;
+
+    ElMessage.success('文件上传成功');
+  } catch (e) {
+    ElMessage.error('上传失败，请重试');
+  }
 };
 
 const fetchHomework = async () => {

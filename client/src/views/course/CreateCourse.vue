@@ -28,15 +28,13 @@
         <el-form-item label="课程封面" prop="coverImage">
           <el-upload
             class="cover-uploader"
-            :action="qiniuData.uploadUrl"
-            :data="qiniuData"
             :show-file-list="false"
-            :on-success="handleCoverSuccess"
-            :before-upload="beforeCoverUpload"
+            :http-request="uploadHttpRequest"
           >
             <img v-if="courseForm.coverImage" :src="courseForm.coverImage" class="cover-image" />
             <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
           </el-upload>
+          <br/>
            <div class="el-upload__tip">
             只能上传jpg/png文件，且不超过2MB
           </div>
@@ -58,6 +56,7 @@ import { Plus } from '@element-plus/icons-vue';
 import { createCourse } from '@/api/course';
 import { getUploadToken } from '@/api/file';
 import { loadFull } from 'tsparticles'
+import axios from 'axios';
 
 const router = useRouter();
 const courseFormRef = ref(null);
@@ -123,8 +122,6 @@ const particlesOptions = {
 // --- 七牛云上传相关 ---
 const QINIU_DOMAIN = 'http://sxh8oib6z.hb-bkt.clouddn.com';
 const qiniuData = ref({
-  token: '',
-  key: '',
   uploadUrl: 'http://upload-z1.qiniup.com'
 });
 
@@ -143,35 +140,37 @@ const goBack = () => {
   router.back();
 };
 
-const handleCoverSuccess = (res, uploadFile) => {
-  const newCoverUrl = `${QINIU_DOMAIN}/${res.key}`;
-  courseForm.value.coverImage = newCoverUrl;
-  ElMessage.success('封面上传成功!');
-};
-
-const beforeCoverUpload = async (rawFile) => {
-  const isJpgOrPng = rawFile.type === 'image/jpeg' || rawFile.type === 'image/png';
-  const isLt2M = rawFile.size / 1024 / 1024 < 2;
+const uploadHttpRequest = async ({ file }) => {
+  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+  const isLt2M = file.size / 1024 / 1024 < 2;
 
   if (!isJpgOrPng) {
     ElMessage.error('封面图片只能是 JPG/PNG 格式!');
-    return false;
+    return;
   }
   if (!isLt2M) {
     ElMessage.error('封面图片大小不能超过 2MB!');
-    return false;
+    return;
   }
   
   try {
     const token = await getUploadToken();
-    qiniuData.value.token = token;
-    const fileExt = rawFile.name.split('.').pop() || 'png';
-    // 文件名可以取得更唯一，例如加上用户ID，但此处为简化流程
-    qiniuData.value.key = `course-covers/temp_${Date.now()}.${fileExt}`;
-    return true;
-  } catch(e) {
-    ElMessage.error('获取上传凭证失败，请重试');
-    return false;
+    const fileExt = file.name.split('.').pop() || 'png';
+    const key = `course-covers/temp_${Date.now()}.${fileExt}`;
+
+    const formData = new FormData();
+    formData.append('token', token);
+    formData.append('key', key);
+    formData.append('file', file);
+
+    const res = await axios.post(qiniuData.value.uploadUrl, formData);
+
+    const newCoverUrl = `${QINIU_DOMAIN}/${res.data.key}`;
+    courseForm.value.coverImage = newCoverUrl;
+    ElMessage.success('封面上传成功!');
+  } catch (e) {
+    console.error('Upload failed:', e);
+    ElMessage.error('上传失败，请重试');
   }
 };
 

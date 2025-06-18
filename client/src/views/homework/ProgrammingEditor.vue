@@ -22,6 +22,7 @@
                     >
                         <el-button type="primary">点击上传</el-button>
                     </el-upload>
+                    <br/>
                     <span v-if="questionFileList.length > 0" class="file-name">
                         <a :href="questionFileList[0].url" target="_blank">{{ questionFileList[0].name }}</a>
                     </span>

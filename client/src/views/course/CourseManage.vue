@@ -73,12 +73,7 @@
                     <el-form-item v-if="currentNode.type === 2" label="视频">
                         <el-upload
                           class="video-uploader"
-                          :action="qiniuData.uploadUrl"
-                          :data="qiniuData"
-                          :on-success="handleVideoSuccess"
-                          :on-error="handleVideoError"
-                          :on-progress="handleVideoProgress"
-                          :before-upload="beforeVideoUpload"
+                          :http-request="uploadVideoHttpRequest"
                           :show-file-list="false"
                           :disabled="!currentNode.id"
                         >
@@ -161,6 +156,7 @@ import { useUserStore } from '../../stores/user';
 import ChatContainer from '@/components/common/ChatContainer.vue';
 import { getCourseChapterTree, saveOrUpdateChapter, deleteChapter, getUploadToken, reorderChapters } from '@/api/courseChapter';
 import { getHomeworkList, saveHomework, deleteHomework } from '@/api/homework';
+import axios from 'axios';
 
 const userStore = useUserStore()
 // 假定API文件已更新
@@ -211,8 +207,6 @@ const homeworkLoading = ref(false);
 
 // --- 七牛云上传相关 ---
 const qiniuData = ref({
-  token: '',
-  key: '',
   uploadUrl: 'http://upload-z1.qiniup.com/' // 默认为华南z2区，请根据你的存储区域修改
 });
 
@@ -267,9 +261,10 @@ const fetchChapterTree = async () => {
 const fetchUploadToken = async () => {
     try {
         if(userStore.isTeacher) {
-        const res = await getUploadToken();
+        // This is now handled within the upload request, so this pre-fetching can be removed or simplified.
+        // For now, let's keep it but it's not strictly necessary for the upload itself.
         const r = await getUploadToken();
-        qiniuData.value.token = r;
+        qiniuData.value.token = r; // This might be stale, real token is fetched on-demand.
       }
     } catch(e) {
       console.error(e);
@@ -401,55 +396,66 @@ const handleNodeDrop = async (draggingNode, dropNode, dropType, ev) => {
 };
 
 // --- 视频上传钩子 ---
-const beforeVideoUpload = async (file) => {
+const uploadVideoHttpRequest = async ({ file }) => {
+    const isMp4 = file.type === 'video/mp4';
+    if (!isMp4) {
+        ElMessage.error('请上传 MP4 格式的视频文件！');
+        return;
+    }
+
     const isLt500M = file.size / 1024 / 1024 < 500;
 
     if (!isLt500M) {
         ElMessage.error('上传视频大小不能超过 500MB!');
-        return false;
+        return;
     }
 
     if (!currentNode.value.id) {
         ElMessage.error('请先保存课时信息，然后再上传视频！');
-        return false;
+        return;
     }
-    if (!qiniuData.value.token) {
-        ElMessage.error('未能获取上传凭证，无法上传！');
-        await fetchUploadToken(); // 尝试重新获取
-        if(!qiniuData.value.token) return false; // 还是失败则阻止上传
+
+    try {
+        const token = await getUploadToken();
+        if (!token) {
+            ElMessage.error('未能获取上传凭证，无法上传！');
+            return;
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const key = `videos/${props.courseId}/${currentNode.value.id}_${Date.now()}${fileExt ? '.' + fileExt : ''}`;
+        
+        const formData = new FormData();
+        formData.append('token', token);
+        formData.append('key', key);
+        formData.append('file', file);
+        
+        isUploading.value = true;
+        uploadProgress.value = 0;
+
+        const res = await axios.post(qiniuData.value.uploadUrl, formData, {
+            onUploadProgress: (progressEvent) => {
+                totalSize.value = progressEvent.total;
+                uploadedSize.value = progressEvent.loaded;
+                uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            }
+        });
+
+        isUploading.value = false;
+        const fileUrl = `${QINIU_DOMAIN}/${res.data.key}`;
+        currentNode.value.url = fileUrl;
+        ElMessage.success('视频上传成功');
+        
+        setTimeout(() => {
+            uploadProgress.value = 0;
+        }, 3000);
+
+    } catch (err) {
+        isUploading.value = false;
+        uploadProgress.value = 0;
+        ElMessage.error('视频上传失败');
+        console.error(err);
     }
-    // 从原始文件名中提取后缀
-    const fileExt = file.name.split('.').pop();
-    // 重新构造文件名，避免中文或特殊字符带来的URL编码问题
-    qiniuData.value.key = `videos/${props.courseId}/${currentNode.value.id}_${Date.now()}${fileExt ? '.' + fileExt : ''}`;
-    return true;
-};
-
-const handleVideoProgress = (event, file) => {
-  uploadProgress.value = Math.round(event.percent);
-  isUploading.value = true;
-  uploadedSize.value = event.loaded;
-  totalSize.value = event.total;
-};
-
-const handleVideoSuccess = (response, file) => {
-  isUploading.value = false;
-  uploadProgress.value = 100;
-  // 构建完整的文件URL
-  const fileUrl = `${QINIU_DOMAIN}/${response.key}`;
-  currentNode.value.url = fileUrl;
-  ElMessage.success('视频上传成功');
-  
-  // 3秒后重置进度条
-  setTimeout(() => {
-    uploadProgress.value = 0;
-  }, 3000);
-};
-
-const handleVideoError = (err) => {
-  isUploading.value = false;
-  uploadProgress.value = 0;
-  ElMessage.error('视频上传失败');
 };
 
 const handleGradeHomework = (homework) => {
