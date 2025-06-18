@@ -363,7 +363,9 @@ const handleJoinCourse = async () => {
     ElMessage.success(`成功加入课程！`);
     joinCourseDialogVisible.value = false;
     courseCodeInput.value = '';
-    fetchCourses(); // 重新获取课程列表
+    // 强制刷新课程列表
+    coursesLoaded.value = false;
+    fetchCourses();
   } catch (error) {
     ElMessage.error(error.message || '加入课程失败');
   } finally {

@@ -16,6 +16,29 @@
             
             <el-alert title="此页面下的所有修改，都需要点击右上角的'保存全部修改'按钮才会生效。" type="info" show-icon :closable="false" />
             
+            <el-form :model="homeworkData" label-width="100px" class="homework-info-form">
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="作业标题">
+                            <el-input v-model="homeworkData.title" placeholder="请输入作业标题"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                         <el-form-item label="作业时间">
+                            <el-date-picker
+                                v-model="timeRange"
+                                type="datetimerange"
+                                range-separator="至"
+                                start-placeholder="开始日期"
+                                end-placeholder="结束日期"
+                                style="width: 100%;"
+                                value-format="YYYY-MM-DDTHH:mm:ss"
+                            />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            
             <div class="main-content">
                 <div v-for="(question, index) in homeworkData.questions" :key="question.id" class="question-item">
                     <el-card class="question-card">
@@ -48,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { getHomeworkDetail, saveHomework } from '@/api/homework';
@@ -70,7 +93,25 @@ const props = defineProps({
 
 const router = useRouter();
 
-const homeworkData = ref({ questions: [] }); // 改进初始状态
+const homeworkData = ref({ title:'', questions: [] }); // 改进初始状态
+
+const timeRange = computed({
+    get() {
+        if (homeworkData.value.startTime && homeworkData.value.endTime) {
+            return [homeworkData.value.startTime, homeworkData.value.endTime];
+        }
+        return [];
+    },
+    set(val) {
+        if (val && val.length === 2) {
+            homeworkData.value.startTime = val[0];
+            homeworkData.value.endTime = val[1];
+        } else {
+            homeworkData.value.startTime = null;
+            homeworkData.value.endTime = null;
+        }
+    }
+});
 
 onMounted(() => {
     if (props.homeworkId !== 'new') {
@@ -206,9 +247,16 @@ const removeQuestion = (index) => {
     margin-bottom: 20px;
 }
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.homework-info-form {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+    margin-bottom: 20px;
 }
 .main-content {
     margin-top: 20px;
@@ -221,7 +269,7 @@ const removeQuestion = (index) => {
 }
 .add-question-buttons {
     margin-top: 20px;
-    border-top: 1px solid #EBEEF5;
+    border-top: 1px solid #ebeef5;
     padding-top: 20px;
     text-align: center;
 }

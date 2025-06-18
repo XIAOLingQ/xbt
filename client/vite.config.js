@@ -14,6 +14,7 @@ export default defineConfig({
     vueDevTools(),
   ],
   server: {
+    port: 5173,
     proxy: {
       // API 请求的代理规则
       '/api': {
@@ -46,4 +47,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  build: {
+    outDir: 'dist'
+  }
 })

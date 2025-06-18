@@ -48,6 +48,7 @@
         SELECT
             h.id,
             h.title,
+            h.start_time AS startTime,
             h.end_time AS endTime,
             IFNULL(hs.status, 1) AS status,
             hs.score
