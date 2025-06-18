@@ -78,6 +78,12 @@
             <version>1.4.7</version>
         </dependency>
 
+        <!-- WebSocket -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- 七牛云 Java SDK -->
         <dependency>
             <groupId>com.qiniu</groupId>

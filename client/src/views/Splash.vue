@@ -75,20 +75,20 @@ onBeforeUpdate(() => {
 
 const features = ref([
   {
-    title: '前沿智能',
-    description: '由定制化模型与前沿模型混合驱动，我们的 AI 既聪明又快速。',
+    title: '学习赋能',
+    description: '集直播录播双模式与资料测试于一体，我们的平台既灵活又高效。',
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 1-3.14 6.26L1 9.27l5.26 5.14L4.82 22 12 18.26 19.18 22l-1.44-7.59L23 9.27l-7.86-2.01L12 1z"></path></svg>`,
     color: '#007bff'
   },
   {
-    title: '无缝的体验',
-    description: '一键即可导入所有扩展、主题和快捷键，无缝衔接您的学习习惯。',
+    title: '社交互联',
+    description: '聚社区讨论与私信互助于一身，我们的生态既活跃又温暖。',
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-4.44a2 2 0 0 0-2 2v.78a2 2 0 0 1-1 1.73l-1.83.91a2 2 0 0 0-1 1.73V11a2 2 0 0 0 2 2h4.44a2 2 0 0 0 2-2v-.78a2 2 0 0 1 1-1.73l1.83-.91a2 2 0 0 0 1-1.73V4a2 2 0 0 0-2-2z"></path><path d="M22 12.78v.78a2 2 0 0 1-2 2h-4.44a2 2 0 0 1-2-2v-1.56a2 2 0 0 0-1-1.73l-1.83-.91a2 2 0 0 1-1-1.73V4a2 2 0 0 1 2-2h4.44a2 2 0 0 1 2 2v.78a2 2 0 0 0 1 1.73l1.83.91a2 2 0 0 1 1 1.73z"></path></svg>`,
     color: '#28a745'
   },
   {
-    title: '隐私选项',
-    description: '启用隐私模式后，您的任何代码都不会存储在远程服务器。',
+    title: '管理智控',
+    description: '融个人定制与课程管控为一体，我们的系统既便捷又可靠。',
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
     color: '#ffc107'
   }
@@ -122,13 +122,13 @@ const goToLogin = () => {
 
 <style scoped>
 :root {
-  --text-primary: #212529;
+  --text-primary: #edeff1;
   --text-secondary: #6c757d;
-  --bg-primary: #ffffff;
+  --bg-primary: #cacada;
   --bg-secondary: #f8f9fa;
   --accent-primary: #007bff;
   --border-color: #e9ecef;
-  --soft-shadow: 0 4px 6px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --soft-shadow: 0 4px 6px rgba(245, 240, 240, 0.921), 0 1px 3px rgba(0, 0, 0, 0.06);
   --hover-shadow: 0 10px 20px rgba(0,0,0,0.04), 0 4px 8px rgba(0,0,0,0.08);
 }
 
@@ -138,7 +138,16 @@ const goToLogin = () => {
 }
 
 .splash-page {
-  background-color: var(--bg-primary);
+  /* 根容器背景：从hero区域边缘向四周渐变褪色（颜色变深） */
+  background-image: radial-gradient(
+    ellipse at center,
+    rgba(18, 80, 212, 0.5) 0%,     /* 中心颜色：深蓝，透明度0.5（更不透明） */
+    rgba(15, 40, 120, 0.2) 60%,    /* 中间过渡色：深紫蓝，透明度0.2 */
+    rgba(8, 18, 58, 0.1) 90%      /* 边缘颜色：深灰蓝，透明度0.1（保留轻微色调） */
+  );
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   color: var(--text-primary);
   height: 100vh;
   width: 100%;
@@ -199,6 +208,13 @@ const goToLogin = () => {
   padding: 4rem 0;
   opacity: 0;
   animation: fadeInUp 0.8s ease-out forwards;
+
+  /* 添加背景图片 */
+  background-image: url('./b2.png');
+  background-size: cover;
+  background-position: center;
+  border-radius: 16px; /* 可选：圆角 */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* 可选：阴影 */
 }
 
 @keyframes fadeInUp {
@@ -209,14 +225,14 @@ const goToLogin = () => {
 .hero-title {
   font-size: clamp(2.8rem, 5vw, 4.2rem);
   font-weight: 700;
-  color: var(--text-primary);
+  color: #ffffff; /* 改为白色 */
   margin-bottom: 1rem;
   letter-spacing: -1.5px;
 }
 
 .hero-subtitle {
   font-size: clamp(1.1rem, 2vw, 1.25rem);
-  color: var(--text-secondary);
+  color: #ffffff; /* 改为白色 */
   max-width: 600px;
   margin: 0 auto 2.5rem;
   line-height: 1.7;
@@ -249,7 +265,9 @@ const goToLogin = () => {
 }
 
 .feature-card {
-  background: var(--bg-secondary);
+  background: #ffffff; /* 改为白色，完全不透明 */
+  /* 或使用半透明：background: rgba(255, 255, 255, 0.9); */
+  
   border-radius: 16px;
   padding: 2rem;
   border: 1px solid var(--border-color);
@@ -316,7 +334,13 @@ const goToLogin = () => {
 }
 
 .course-item {
-  background: var(--bg-secondary);
+  /* 从顶部透明到底部纯白的渐变 */
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,   /* 顶部完全透明 */
+    rgba(255, 255, 255, 1) 100%   /* 底部完全白色 */
+  );
+  
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--border-color);
@@ -358,4 +382,4 @@ const goToLogin = () => {
   font-size: 0.9rem;
   color: var(--text-secondary);
 }
-</style> 
+</style>

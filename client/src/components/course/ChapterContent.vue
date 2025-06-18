@@ -583,7 +583,7 @@ defineExpose({
   height: 0.25em;
   padding: 0;
   margin: 24px 0;
-  background-color: #e1e4e8;
+  background-color: #e8f1f8;
   border: 0;
 }
 

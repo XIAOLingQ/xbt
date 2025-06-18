@@ -51,6 +51,7 @@
             </div>
         </el-card>
     </div>
+    <AiAssistant v-if="!isPracticeMode" />
 </template>
 
 <script setup>
@@ -58,7 +59,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../api/ai';
 import { ElMessage, ElCard, ElPageHeader, ElTag, ElDivider, ElRadioGroup, ElRadio, ElButton } from 'element-plus';
-
+import AiAssistant from '@/components/AiAssistant.vue';
 const route = useRoute();
 const router = useRouter();
 const questions = ref([]);

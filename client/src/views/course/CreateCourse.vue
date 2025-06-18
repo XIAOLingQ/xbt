@@ -1,5 +1,11 @@
 <template>
   <div class="create-course-container">
+    <Particles
+      id="tsparticles"
+      class="course-bg"
+      :particlesInit="particlesInit"
+      :options="particlesOptions"
+    />
     <el-page-header @back="goBack" class="page-header">
   <template #content>
     <span class="page-title">创建新课程</span>
@@ -51,10 +57,68 @@ import { ElMessage } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
 import { createCourse } from '@/api/course';
 import { getUploadToken } from '@/api/file';
+import { loadFull } from 'tsparticles'
 
 const router = useRouter();
 const courseFormRef = ref(null);
 const loading = ref(false);
+
+const particlesInit = async (engine) => {
+  await loadFull(engine)
+}
+
+const particlesOptions = {
+  background: {
+    color: {
+      value: "transparent"
+    }
+  },
+  particles: {
+    number: {
+      value: 80
+    },
+    color: {
+      value: "#6996f8"
+    },
+    shape: {
+      type: "circle"
+    },
+    opacity: {
+      value: 0.7
+    },
+    size: {
+      value: 3,
+      random: true
+    },
+    links: {
+      enable: true,
+      color: "#6996f8",
+      distance: 120,
+      opacity: 0.5,
+      width: 1
+    },
+    move: {
+      enable: true,
+      speed: 2,
+      direction: "none",
+      random: true,
+      straight: false,
+      out_mode: "out"
+    }
+  },
+  interactivity: {
+    events: {
+      onHover: {
+        enable: true,
+        mode: "grab"
+      },
+      onClick: {
+        enable: true,
+        mode: "push"
+      }
+    }
+  }
+};
 
 // --- 七牛云上传相关 ---
 const QINIU_DOMAIN = 'http://sxh8oib6z.hb-bkt.clouddn.com';
@@ -144,16 +208,25 @@ const resetForm = () => {
   --border-color: #e2e8f0;
   --text-primary: #1e293b;
   --text-secondary: #64748b;
-  --background-color: #f8fafc;
+  --background-color: #e8f1f8;
   --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   min-height: 100vh;
 }
 
+.course-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
 .create-course-container {
   position: relative;
   z-index: 2;
-  background: rgba(248, 250, 252, 0.7);
+  background: #e8f1f8(248, 250, 252, 0.7);
 }
 
 .page-header {
@@ -187,8 +260,7 @@ const resetForm = () => {
 }
 
 .page-header:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 12px 0 rgba(255, 255, 255, 0.1);
 }
 
 .page-header:after {
@@ -216,15 +288,14 @@ const resetForm = () => {
 }
 
 .page-header :deep(.el-page-header__back):hover {
-  color: #1d4ed8;
-  transform: translateX(-2px);
+  color: var(--primary-color);
 }
 
 .page-title {
-  color: var(--primary-color);
+  color: var(--text-primary);
   font-weight: 600;
-  font-size: 1.5rem;
-  letter-spacing: -0.025em;
+  font-size: 1.2rem;
+  margin-right: 12px;
 }
 
 .form-card {
@@ -273,6 +344,42 @@ const resetForm = () => {
   font-weight: 500;
   color: var(--text-primary);
   padding-bottom: 8px;
+}
+
+.el-form-item :deep(.el-input__wrapper) {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.el-form-item :deep(.el-input__wrapper:hover) {
+  border-color: var(--primary-color);
+  background-color: rgba(105, 150, 248, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(105, 150, 248, 0.1), 0 2px 4px -1px rgba(105, 150, 248, 0.06);
+}
+
+.el-form-item :deep(.el-input__wrapper.is-focus) {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 6px -1px rgba(105, 150, 248, 0.1), 0 2px 4px -1px rgba(105, 150, 248, 0.06);
+}
+
+.el-form-item :deep(.el-textarea__inner) {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.el-form-item :deep(.el-textarea__inner:hover) {
+  border-color: var(--primary-color);
+  background-color: rgba(105, 150, 248, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(105, 150, 248, 0.1), 0 2px 4px -1px rgba(105, 150, 248, 0.06);
+}
+
+.el-form-item :deep(.el-textarea__inner:focus) {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 6px -1px rgba(105, 150, 248, 0.1), 0 2px 4px -1px rgba(105, 150, 248, 0.06);
 }
 
 .cover-uploader :deep(.el-upload) {

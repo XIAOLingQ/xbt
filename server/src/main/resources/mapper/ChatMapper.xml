@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbt.server.mapper.ChatMapper">
+
+    <insert id="insert" parameterType="com.xbt.server.pojo.entity.ChatMessage" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO chat_message (course_id, sender_id, content, created_at)
+        VALUES (#{courseId}, #{senderId}, #{content}, #{createdAt})
+    </insert>
+
+    <select id="findByCourseId" resultType="com.xbt.server.pojo.dto.ChatMessageDTO">
+        SELECT
+            cm.id,
+            cm.course_id,
+            cm.sender_id,
+            u.real_name AS sender_name,
+            u.avatar AS sender_avatar,
+            cm.content,
+            cm.created_at
+        FROM
+            chat_message cm
+        JOIN
+            user u ON cm.sender_id = u.id
+        WHERE
+            cm.course_id = #{courseId}
+        ORDER BY
+            cm.created_at ASC
+    </select>
+</mapper> 

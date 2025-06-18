@@ -105,6 +105,7 @@
       </template>
     </el-dialog>
   </div>
+  <ChatContainer v-if="courseId" :course-id="courseId" />
 </template>
 
 <script setup>
@@ -115,7 +116,7 @@ import { Reading, Search, Plus, User, CopyDocument } from '@element-plus/icons-v
 import { useUserStore } from '@/stores/user'
 import { getTeacherCourses, updateCourse, deleteCourse } from '@/api/course'
 import { getUploadToken } from '@/api/courseChapter'
-
+import ChatContainer from '@/components/common/ChatContainer.vue';
 const router = useRouter()
 const userStore = useUserStore()
 
@@ -243,7 +244,17 @@ const copyCourseCode = async (code) => {
 
 <style scoped>
 .home-container {
-  height: 100%;
+  padding: 0px 20px 20px;
+  --primary-color: #6996f8;
+  --primary-light: #ebf2ff;
+  --primary-lighter: #f5f8ff;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --background-color: #f8fafc;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  min-height: 100vh;
 }
 .content-wrapper {
   display: flex;
@@ -251,15 +262,64 @@ const copyCourseCode = async (code) => {
 }
 .sidebar {
   background-color: #fff;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid var(--border-color);
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
 .menu {
   border-right: none;
+  background: transparent;
+  padding: 0 16px;
+  margin-top: 16px;
+}
+
+.menu :deep(.el-menu-item) {
+  height: 48px;
+  line-height: 48px;
+  margin: 8px 0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.menu :deep(.el-menu-item.is-active) {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+.menu :deep(.el-menu-item.is-active)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background: var(--primary-color);
+}
+
+.menu :deep(.el-menu-item:not(.is-active):hover) {
+  background-color: var(--primary-lighter);
+}
+
+.menu :deep(.el-icon) {
+  font-size: 18px;
+  margin-right: 10px;
+  transition: transform 0.2s ease;
+}
+
+.menu :deep(.el-menu-item:hover .el-icon) {
+  transform: scale(1.1);
 }
 .main-content {
   flex: 1;
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: var(--background-color);
 }
 .section-header {
   display: flex;
@@ -279,94 +339,294 @@ const copyCourseCode = async (code) => {
 }
 .search-input {
   width: 250px;
+  transition: all 0.3s ease;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(105, 150, 248, 0.3);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.search-input :deep(.el-input__wrapper:hover) {
+  border-color: rgba(105, 150, 248, 0.5);
+  box-shadow: 0 2px 6px rgba(105, 150, 248, 0.1);
+}
+
+.search-input :deep(.el-input__wrapper.is-focus) {
+  border-color: rgba(105, 150, 248, 0.8);
+  box-shadow: 0 2px 8px rgba(105, 150, 248, 0.15);
+  transform: translateY(-1px);
+}
+
+.search-input :deep(.el-input__inner::placeholder) {
+  color: rgba(100, 116, 139, 0.6);
 }
 .course-card {
   margin-bottom: 20px;
-  transition: all 0.3s;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  position: relative;
   cursor: pointer;
 }
+
 .course-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
+
+.course-card:hover:before {
+  width: 6px;
+  background: #1d4ed8;
+  transition: all 0.3s ease;
+}
+
+.course-image:hover {
+  transform: scale(1.02);
+  transition: transform 0.3s ease;
+}
+
+.course-card:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #6996f8;
+}
+
 .course-image {
   width: 100%;
-  height: 150px;
+  height: 180px;
   object-fit: cover;
   display: block;
 }
+
 .course-info {
-  padding: 15px;
+  padding: 16px;
 }
+
 .course-info h3 {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-size: 16px;
-  color: #303133;
+  color: #1e293b;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .course-code-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 8px;
 }
+
 .copy-icon {
-  visibility: hidden;
   cursor: pointer;
-  color: var(--el-color-primary);
-  transition: visibility 0.2s ease-in-out;
+  color: #6996f8;
+  transition: all 0.3s;
 }
-.course-code-container:hover .copy-icon {
-  visibility: visible;
+
+.copy-icon:hover {
+  color: #1d4ed8;
+  transform: scale(1.2);
+  transition: all 0.2s ease;
 }
+
 .teacher {
-  margin: 0 0 10px;
-  color: #909399;
+  color: #64748b;
   font-size: 14px;
-  height: 21px; /* 预留空间防止视图切换时跳动 */
 }
+
 .course-stats {
   display: flex;
   align-items: center;
-  color: #909399;
+  color: #64748b;
   font-size: 14px;
 }
+
 .course-stats .el-icon {
-  margin-right: 5px;
+  margin-right: 6px;
+  color: #6996f8;
 }
+
 .card-footer {
-  border-top: 1px solid #e4e7ed;
-  padding: 10px 15px;
-  text-align: right;
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
 }
+
 .action-btn {
   padding: 0;
   height: auto;
+  color: #6996f8;
+  position: relative;
+  transition: all 0.3s ease;
 }
+
+.action-btn:hover {
+  color: #1d4ed8;
+  transform: translateX(2px);
+}
+
+.action-btn:after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #1d4ed8;
+  transition: width 0.3s ease;
+}
+
+.action-btn:hover:after {
+  width: 100%;
+}
+/* --- 编辑对话框样式 --- */
+:deep(.el-dialog) {
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+:deep(.el-dialog__header) {
+  border-bottom: 1px solid rgba(105, 150, 248, 0.2);
+  padding: 16px 20px;
+  margin-right: 0;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+:deep(.el-dialog__title) {
+  font-size: 18px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+:deep(.el-dialog__body) {
+  padding: 20px;
+}
+
+:deep(.el-form-item__label) {
+  color: #64748b;
+  font-weight: 500;
+}
+
+:deep(.el-dialog .el-input__wrapper) {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(105, 150, 248, 0.3);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-dialog .el-input__wrapper:hover) {
+  border-color: rgba(105, 150, 248, 0.5);
+  box-shadow: 0 2px 6px rgba(105, 150, 248, 0.1);
+}
+
+:deep(.el-dialog .el-input__wrapper.is-focus) {
+  border-color: rgba(105, 150, 248, 0.8);
+  box-shadow: 0 2px 8px rgba(105, 150, 248, 0.15);
+  transform: translateY(-1px);
+}
+
+:deep(.el-dialog .el-textarea__inner) {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(105, 150, 248, 0.3);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-dialog .el-textarea__inner:hover) {
+  border-color: rgba(105, 150, 248, 0.5);
+  box-shadow: 0 2px 6px rgba(105, 150, 248, 0.1);
+}
+
+:deep(.el-dialog .el-textarea__inner:focus) {
+  border-color: rgba(105, 150, 248, 0.8);
+  box-shadow: 0 2px 8px rgba(105, 150, 248, 0.15);
+}
+
+:deep(.el-dialog__footer) {
+  border-top: 1px solid rgba(105, 150, 248, 0.2);
+  padding: 16px 20px;
+  text-align: right;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+:deep(.el-dialog__footer .el-button) {
+  background: rgba(105, 150, 248, 0.1);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(105, 150, 248, 0.2);
+  color: #1d4ed8;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+:deep(.el-dialog__footer .el-button:hover) {
+  background: rgba(105, 150, 248, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-dialog__footer .el-button--primary) {
+  background: rgba(105, 150, 248, 0.2);
+  color: white;
+}
+
+:deep(.el-dialog__footer .el-button--primary:hover) {
+  background: rgba(105, 150, 248, 0.3);
+}
+
 /* --- 课程封面上传样式 --- */
 .cover-uploader :deep(.el-upload) {
-  border: 1px dashed var(--el-border-color);
-  border-radius: 6px;
+  border: 1px dashed #e2e8f0;
+  border-radius: 8px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: var(--el-transition-duration-fast);
+  transition: all 0.3s;
+  background-color: #f8fafc;
 }
+
 .cover-uploader :deep(.el-upload:hover) {
-  border-color: var(--el-color-primary);
+  border-color: #6996f8;
+  background-color: rgba(105, 150, 248, 0.05);
 }
+
 .cover-uploader-icon {
   font-size: 28px;
-  color: #8c939d;
+  color: #64748b;
   width: 178px;
   height: 178px;
+  line-height: 178px;
   text-align: center;
+  transition: all 0.3s;
 }
+
+.cover-uploader-icon:hover {
+  color: #6996f8;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+
 .cover-image-preview {
   width: 178px;
   height: 178px;
   object-fit: cover;
   display: block;
+  border-radius: 6px;
 }
 </style> 

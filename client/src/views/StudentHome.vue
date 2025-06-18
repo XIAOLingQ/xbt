@@ -18,7 +18,7 @@
           </el-menu-item>
           <el-menu-item index="ai_playground">
             <el-icon><Aim /></el-icon>
-            <span>AI靶场</span>
+            <span>AI练题</span>
           </el-menu-item>
         </el-menu>
       </el-aside>
@@ -426,202 +426,516 @@ watch(activeMenu, (newVal) => {
 
 <style scoped>
 .home-container {
-  height: 100%;
+  padding: 0px 20px 20px;
+  --primary-color: #6996f8;
+  --primary-light: #ebf2ff;
+  --primary-lighter: #f5f8ff;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --background-color: #f8fafc;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  min-height: 100vh;
 }
+
 .content-wrapper {
   display: flex;
   min-height: calc(100vh - 60px);
 }
+
 .sidebar {
   background-color: #fff;
-  border-right: 1px solid #e6e6e6;
+  border-right: 1px solid var(--border-color);
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
+
 .menu {
   border-right: none;
+  background: transparent;
+  padding: 0 16px;
+  margin-top: 16px;
 }
+
+.menu :deep(.el-menu-item) {
+  height: 48px;
+  line-height: 48px;
+  margin: 8px 0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.menu :deep(.el-menu-item.is-active) {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+.menu :deep(.el-menu-item.is-active)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background: var(--primary-color);
+}
+
+.menu :deep(.el-menu-item:not(.is-active):hover) {
+  background-color: var(--primary-lighter);
+}
+
+.menu :deep(.el-icon) {
+  font-size: 18px;
+  margin-right: 10px;
+  transition: transform 0.2s ease;
+}
+
+.menu :deep(.el-menu-item:hover .el-icon) {
+  transform: scale(1.1);
+}
+
 .main-content {
   flex: 1;
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: var(--background-color);
 }
+
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
+
 .section-header h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 500;
+  position: relative;
+  padding-bottom: 10px;
 }
+
+.section-header h2:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
 .actions {
   display: flex;
   align-items: center;
   gap: 15px;
 }
+
 .search-input {
   width: 250px;
 }
+
 .course-card {
   margin-bottom: 20px;
-  transition: all 0.3s;
-  cursor: pointer;
+  border-radius: 12px;
+  border: none;
+  box-shadow: var(--card-shadow);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  position: relative;
+  height: 340px; /* 固定卡片高度 */
+  display: flex;
+  flex-direction: column;
 }
+
 .course-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
 }
+
+.course-card:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-color);
+}
+
 .course-image {
   width: 100%;
-  height: 150px;
+  height: 180px; /* 固定图片高度 */
   object-fit: cover;
   display: block;
+  flex-shrink: 0;
 }
+
 .course-info {
   padding: 15px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
+
 .course-info h3 {
   margin: 0 0 8px;
   font-size: 16px;
-  color: #303133;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .teacher {
   margin: 0 0 10px;
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 14px;
-  height: 21px; /* 预留空间防止视图切换时跳动 */
+  height: 21px;
 }
+
 .card-footer {
-  border-top: 1px solid #e4e7ed;
+  border-top: 1px solid var(--border-color);
   padding: 10px 15px;
   text-align: right;
 }
+
 .action-btn {
   padding: 0;
   height: auto;
 }
+
 .report-card {
-  margin-bottom: 20px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: var(--card-shadow);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  position: relative;
 }
+
+.report-card:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.report-card:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-color);
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-color);
 }
+
+.stats-info {
+  padding: 24px;
+  text-align: center;
+}
+
+.stats-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--primary-color);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.stats-unit {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+.stats-compare {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
 .chart-container {
-  width: 100%;
+  padding: 20px;
   height: 400px;
 }
+
 .chart-container.large {
   height: 400px;
 }
-.stats-info {
-  text-align: center;
+
+.loading-container {
+  padding: 32px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
 }
-.stats-number {
-  font-size: 36px;
-  color: #303133;
-  font-weight: bold;
+
+:deep(.el-card) {
+  border: none !important;
 }
-.stats-unit {
-  font-size: 16px;
-  margin-left: 4px;
+
+:deep(.el-skeleton) {
+  padding: 20px;
 }
-.stats-compare {
-  margin-top: 10px;
-  color: #67c23a;
-  font-size: 14px;
-}
-.placeholder-chart {
-  color: #909399;
-  font-size: 14px;
-}
+
 .mt-20 {
   margin-top: 20px;
 }
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .stats-number {
+    font-size: 28px;
+  }
+  
+  .stats-unit {
+    font-size: 14px;
+  }
+  
+  .chart-container {
+    height: 300px;
+  }
+}
+
+.ai-playground {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-playground::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(129, 140, 248, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
 .ai-playground .topic-input {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  position: relative;
 }
+
+.ai-playground :deep(.el-input__wrapper) {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 
+    0 0 20px rgba(99, 102, 241, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.ai-playground :deep(.el-input__wrapper:hover) {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 
+    0 0 30px rgba(99, 102, 241, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.ai-playground :deep(.el-input__wrapper.is-focus) {
+  border-color: rgba(99, 102, 241, 0.8);
+  box-shadow: 
+    0 0 40px rgba(99, 102, 241, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.ai-playground :deep(.el-input__inner) {
+  color: #e2e8f0;
+  font-size: 16px;
+}
+
+.ai-playground :deep(.el-input__inner::placeholder) {
+  color: #64748b;
+}
+
 .question-container {
-  padding: 20px 0;
+  padding: 25px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
 }
+
+.question-container:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 
+    0 15px 40px rgba(0, 0, 0, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
 .question-text {
   font-size: 16px;
-  margin-bottom: 20px;
   line-height: 1.6;
+  color: #e2e8f0;
+  margin-bottom: 25px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 .options-group {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
+
+.options-group :deep(.el-radio) {
+  margin-right: 0;
+  padding: 15px 20px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  transition: all 0.3s ease;
+}
+
+.options-group :deep(.el-radio:hover) {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.options-group :deep(.el-radio__label) {
+  color: #e2e8f0;
+  font-size: 15px;
+}
+
+.options-group :deep(.el-radio__inner) {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.options-group :deep(.el-radio__inner::after) {
+  background: #818cf8;
+  box-shadow: 0 0 10px rgba(129, 140, 248, 0.4);
+}
+
 .submit-action {
-  margin-top: 20px;
+  margin-top: 30px;
   text-align: right;
 }
-.question-card {
-  margin-bottom: 20px;
-}
-.questions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.result-alert {
-  margin-top: 20px;
-}
-.result-alert p {
-  margin: 5px 0;
-}
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-}
-.dialog-tip {
-    margin-top: 15px;
-    font-size: 12px;
-    color: #909399;
-    text-align: center;
-}
-.topic-card {
-  margin-bottom: 20px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.topic-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.topic-info h3 {
-  margin: 0 0 8px;
+
+.submit-action :deep(.el-button) {
+  background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+  border: none;
+  padding: 12px 30px;
   font-size: 16px;
+  font-weight: 500;
+  box-shadow: 
+    0 10px 20px rgba(99, 102, 241, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
 }
-.topic-meta {
-  font-size: 12px;
-  color: #909399;
-  margin: 0 0 15px;
+
+.submit-action :deep(.el-button:hover) {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 15px 30px rgba(99, 102, 241, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
-.topic-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+.result-alert {
+  margin-top: 25px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
 }
-.topic-progress {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-grow: 1;
-  margin-right: 10px;
+
+.result-alert p {
+  margin: 8px 0;
+  color: #e2e8f0;
+  font-size: 15px;
+  line-height: 1.6;
 }
-.progress-text {
-  font-size: 12px;
-  color: #606266;
-  width: 70px; /* 防止文字换行 */
+
+.result-alert :deep(.el-alert__title) {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.result-alert :deep(.el-alert__content) {
+  color: #94a3b8;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.question-container {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.question-container:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.question-container:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+@media (max-width: 768px) {
+  .ai-playground {
+    padding: 20px;
+  }
+  
+  .question-container {
+    padding: 20px;
+  }
+  
+  .options-group :deep(.el-radio) {
+    padding: 12px 15px;
+  }
+  
+  .submit-action :deep(.el-button) {
+    padding: 10px 25px;
+    font-size: 15px;
+  }
 }
 </style> 

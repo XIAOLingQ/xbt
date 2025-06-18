@@ -24,9 +24,14 @@ public class SecurityConfig {
                 .and()
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/user/register", "/api/user/login",
-                        "/api/user/check-username", "/api/user/check-email")
-                .permitAll()
+                .antMatchers(
+                        "/api/user/register",
+                        "/api/user/login",
+                        "/api/user/check-username",
+                        "/api/user/check-email",
+                        "/ws/**",
+                        "/api/courses/all"// 明确允许WebSocket连接
+                ).permitAll()
                 .anyRequest().permitAll() // 临时允许所有请求，方便测试
                 .and()
                 .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)

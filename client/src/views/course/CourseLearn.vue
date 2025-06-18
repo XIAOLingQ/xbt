@@ -29,6 +29,7 @@
       </el-tab-pane>
     </el-tabs>
   </div>
+  <ChatContainer v-if="courseId" :course-id="courseId" />
 </template>
 
 <script setup>
@@ -40,6 +41,7 @@ import { updateVideoProgress } from '@/api/progress';
 import { ElMessage } from 'element-plus';
 import ChapterContent from '@/components/course/ChapterContent.vue';
 import HomeworkList from '@/components/course/HomeworkList.vue';
+import ChatContainer from '@/components/common/ChatContainer.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -105,19 +107,31 @@ const goBack = () => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f5f7fa;
+  background-color: var(--background-color);
+  padding: 0px 20px 20px;
 }
 
-.header {
-  padding: 15px 20px;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, .08);
-  flex-shrink: 0;
+.page-header {
+  margin-bottom: 10px;
+  padding-bottom: 15px;
+  position: relative;
+}
+
+.page-header:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 3px;
 }
 
 .main-content {
   flex-grow: 1;
   padding: 20px;
   overflow: hidden;
+  background-color: var(--background-color);
 }
 </style> 

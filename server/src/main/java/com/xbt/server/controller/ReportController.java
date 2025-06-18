@@ -1,6 +1,5 @@
 package com.xbt.server.controller;
 
-import com.xbt.server.pojo.dto.UserDTO;
 import com.xbt.server.util.AuthUtils;
 import com.xbt.server.util.Result;
 import com.xbt.server.pojo.vo.StudentReportVO;
