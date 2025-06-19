@@ -139,6 +139,54 @@
         </el-table>
         <el-empty v-if="homeworkList.length === 0" description="暂无作业，快去新建一个吧！"></el-empty>
       </el-tab-pane>
+
+      <!-- 学生管理 -->
+      <el-tab-pane label="学生管理" name="students">
+        <div class="tab-header">
+          <h3>学生列表</h3>
+          <el-button type="primary" :icon="Plus" @click="handleInviteStudent">邀请学生</el-button>
+        </div>
+        
+        <el-table :data="studentList" style="width: 100%" v-loading="studentsLoading">
+          <el-table-column prop="username" label="学号" />
+          <el-table-column prop="realName" label="姓名" />
+          <el-table-column prop="email" label="邮箱" />
+          <el-table-column prop="joinTime" label="加入时间" />
+          <el-table-column prop="progress" label="学习进度">
+            <template #default="scope">
+              <el-progress :percentage="scope.row.progress" />
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120">
+            <template #default="scope">
+              <el-button 
+                size="small" 
+                type="danger" 
+                @click="handleRemoveStudent(scope.row)"
+              >移出课程</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        
+        <!-- 邀请学生对话框 -->
+        <el-dialog
+          v-model="inviteDialogVisible"
+          title="邀请学生"
+          width="30%"
+        >
+          <el-form :model="inviteForm" label-width="80px">
+            <el-form-item label="学号">
+              <el-input v-model="inviteForm.username" placeholder="请输入学生学号" />
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button @click="inviteDialogVisible = false">取消</el-button>
+              <el-button type="primary" @click="confirmInviteStudent">确认</el-button>
+            </span>
+          </template>
+        </el-dialog>
+      </el-tab-pane>
     </el-tabs>
 
     <!-- 聊天组件 -->
@@ -156,6 +204,7 @@ import { useUserStore } from '../../stores/user';
 import ChatContainer from '@/components/common/ChatContainer.vue';
 import { getCourseChapterTree, saveOrUpdateChapter, deleteChapter, getUploadToken, reorderChapters } from '@/api/courseChapter';
 import { getHomeworkList, saveHomework, deleteHomework } from '@/api/homework';
+import { getCourseStudents, inviteStudent, removeStudent } from '@/api/course';
 import axios from 'axios';
 
 const userStore = useUserStore()
@@ -225,16 +274,27 @@ const isUploading = ref(false);
 const uploadedSize = ref(0);
 const totalSize = ref(0);
 
+// 学生管理相关的响应式变量
+const studentList = ref([]);
+const studentsLoading = ref(false);
+const inviteDialogVisible = ref(false);
+const inviteForm = ref({
+  username: ''
+});
+
 onMounted(async () => {
   await fetchChapterTree();
   await fetchHomeworkList(); // 组件挂载时也获取一次作业列表
   await fetchUploadToken();
+  await fetchStudentList();
 });
 
 // 监听标签页切换
 watch(activeTab, (newTab) => {
     if (newTab === 'homework') {
         fetchHomeworkList();
+    } else if (newTab === 'students') {
+        fetchStudentList();
     }
 });
 
@@ -518,6 +578,68 @@ const handleDeleteHomework = (row) => {
     });
 };
 
+// 获取学生列表
+const fetchStudentList = async () => {
+    try {
+        studentsLoading.value = true;
+        const res = await getCourseStudents(props.courseId);
+        studentList.value = res;
+    } catch (error) {
+        ElMessage.error('获取学生列表失败');
+        console.error(error);
+    } finally {
+        studentsLoading.value = false;
+    }
+};
+
+// 打开邀请学生对话框
+const handleInviteStudent = () => {
+    inviteForm.value.username = '';
+    inviteDialogVisible.value = true;
+};
+
+// 确认邀请学生
+const confirmInviteStudent = async () => {
+    if (!inviteForm.value.username) {
+        ElMessage.warning('请输入学生学号');
+        return;
+    }
+    
+    try {
+        await inviteStudent(props.courseId, inviteForm.value.username);
+        ElMessage.success('邀请成功');
+        inviteDialogVisible.value = false;
+        fetchStudentList(); // 刷新学生列表
+    } catch (error) {
+        ElMessage.error(error.message || '邀请失败');
+        console.error(error);
+    }
+};
+
+// 移出学生
+const handleRemoveStudent = async (student) => {
+    try {
+        await ElMessageBox.confirm(
+            `确定要将学生 ${student.realName}(${student.username}) 移出课程吗？`,
+            '提示',
+            {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }
+        );
+        
+        await removeStudent(props.courseId, student.id);
+        ElMessage.success('已移出学生');
+        fetchStudentList(); // 刷新学生列表
+    } catch (error) {
+        if (error !== 'cancel') {
+          ElMessage.error('操作失败');
+          console.error(error);
+        }
+    }
+};
+
 </script>
 
 <style scoped>
@@ -698,5 +820,18 @@ const handleDeleteHomework = (row) => {
     width: 100%;
     margin-bottom: 20px;
   }
+}
+
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 </style>

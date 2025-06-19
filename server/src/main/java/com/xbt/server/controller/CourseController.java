@@ -14,6 +14,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 import com.xbt.server.pojo.PageBean;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/course")
@@ -104,5 +105,41 @@ public class CourseController {
         Long studentId = AuthUtils.getCurrentUserId();
         LearnPageVO learnPageData = courseService.getLearnPageData(courseId, studentId);
         return Result.success(learnPageData);
+    }
+
+    /**
+     * 获取课程的学生列表
+     */
+    @GetMapping("/{courseId}/students")
+    public Result getStudentList(@PathVariable Long courseId) {
+        if (!AuthUtils.isTeacher()) {
+            return Result.error(403, "无权限操作");
+        }
+        return Result.success(courseService.getCourseStudents(courseId));
+    }
+
+    /**
+     * 通过学号邀请学生加入课程
+     */
+    @PostMapping("/{courseId}/invite")
+    public Result inviteStudent(@PathVariable Long courseId, @RequestBody Map<String, String> request) {
+        if (!AuthUtils.isTeacher()) {
+            return Result.error(403, "无权限操作");
+        }
+        String username = request.get("username");
+        courseService.inviteStudent(courseId, username);
+        return Result.success();
+    }
+
+    /**
+     * 将学生从课程中移除
+     */
+    @DeleteMapping("/{courseId}/students/{studentId}")
+    public Result removeStudent(@PathVariable Long courseId, @PathVariable Long studentId) {
+        if (!AuthUtils.isTeacher()) {
+            return Result.error(403, "无权限操作");
+        }
+        courseService.removeStudent(courseId, studentId);
+        return Result.success();
     }
 }

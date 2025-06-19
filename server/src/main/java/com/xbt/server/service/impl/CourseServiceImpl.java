@@ -285,4 +285,67 @@ public class CourseServiceImpl implements CourseService {
         vo.setTeacherName(teacherName);
         return vo;
     }
+
+    @Override
+    public List<StudentCourseVO> getCourseStudents(Long courseId) {
+        // 检查课程是否存在
+        Course course = courseMapper.findById(courseId);
+        if (course == null) {
+            throw new BusinessException("课程不存在");
+        }
+
+        // 获取课程的所有学生
+        return courseMapper.getCourseStudents(courseId);
+    }
+
+    @Override
+    @Transactional
+    public void inviteStudent(Long courseId, String username) {
+        // 检查课程是否存在
+        Course course = courseMapper.findById(courseId);
+        if (course == null) {
+            throw new BusinessException("课程不存在");
+        }
+
+        // 查找学生
+        User student = userMapper.findByUsername(username);
+        if (student == null) {
+            throw new BusinessException("学生不存在");
+        }
+        if (student.getRole() != 1) {
+            throw new BusinessException("该用户不是学生");
+        }
+
+        // 检查学生是否已在课程中
+        CourseStudent existing = courseMapper.findStudentInCourse(courseId, student.getId());
+        if (existing != null) {
+            throw new BusinessException("该学生已在课程中");
+        }
+
+        // 添加学生到课程
+        CourseStudent courseStudent = new CourseStudent();
+        courseStudent.setCourseId(courseId);
+        courseStudent.setStudentId(student.getId());
+        courseStudent.setStatus(1); // 1-正常
+        courseMapper.addStudentToCourse(courseStudent);
+    }
+
+    @Override
+    @Transactional
+    public void removeStudent(Long courseId, Long studentId) {
+        // 检查课程是否存在
+        Course course = courseMapper.findById(courseId);
+        if (course == null) {
+            throw new BusinessException("课程不存在");
+        }
+
+        // 检查学生是否在课程中
+        CourseStudent courseStudent = courseMapper.findStudentInCourse(courseId, studentId);
+        if (courseStudent == null) {
+            throw new BusinessException("该学生不在课程中");
+        }
+
+        // 删除学生的课程记录
+        courseStudentMapper.deleteByStudentAndCourse(courseId, studentId);
+    }
 }

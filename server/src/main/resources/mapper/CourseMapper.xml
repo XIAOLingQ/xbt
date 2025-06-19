@@ -96,6 +96,26 @@
         SELECT count(*) FROM course_student WHERE student_id = #{studentId}
     </select>
 
+    <!-- 获取课程的学生列表 -->
+    <select id="getCourseStudents" resultType="com.xbt.server.pojo.vo.StudentCourseVO">
+        SELECT 
+            u.id,
+            u.username,
+            u.real_name as realName,
+            u.email,
+            cs.join_time as joinTime,
+            cs.progress
+        FROM 
+            course_student cs
+            JOIN user u ON cs.student_id = u.id
+        WHERE 
+            cs.course_id = #{courseId}
+            AND cs.status = 1
+            AND u.role = 1
+        ORDER BY 
+            cs.join_time DESC
+    </select>
+
     <select id="getCourseChaptersAndSections" resultType="com.xbt.server.pojo.entity.CourseVideo">
         SELECT * FROM course_video
         WHERE course_id = #{courseId}

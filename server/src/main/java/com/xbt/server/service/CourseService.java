@@ -44,4 +44,25 @@ public interface CourseService {
     void deleteCourse(Long courseId, Long teacherId);
 
     LearnPageVO getLearnPageData(Long courseId, Long studentId);
+
+    /**
+     * 获取课程的学生列表
+     * @param courseId 课程ID
+     * @return 学生列表
+     */
+    List<StudentCourseVO> getCourseStudents(Long courseId);
+
+    /**
+     * 邀请学生加入课程
+     * @param courseId 课程ID
+     * @param username 学生学号
+     */
+    void inviteStudent(Long courseId, String username);
+
+    /**
+     * 将学生从课程中移除
+     * @param courseId 课程ID
+     * @param studentId 学生ID
+     */
+    void removeStudent(Long courseId, Long studentId);
 }

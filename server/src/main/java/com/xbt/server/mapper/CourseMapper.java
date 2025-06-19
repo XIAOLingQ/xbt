@@ -86,4 +86,11 @@ public interface CourseMapper {
     List<CourseVideo> getCourseChaptersAndSections(@Param("courseId") Long courseId);
 
     Set<Long> getCompletedVideoIdsByStudent(@Param("studentId") Long studentId, @Param("courseId") Long courseId);
+
+    /**
+     * 获取课程的学生列表
+     * @param courseId 课程ID
+     * @return 学生列表
+     */
+    List<StudentCourseVO> getCourseStudents(@Param("courseId") Long courseId);
 }

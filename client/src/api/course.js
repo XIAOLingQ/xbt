@@ -76,6 +76,42 @@ export const getLearnPageData = (courseId) => {
   });
 };
 
+/**
+ * 获取课程的学生列表
+ * @param {number} courseId - 课程ID
+ */
+export const getCourseStudents = (courseId) => {
+  return request({
+    url: `/course/${courseId}/students`,
+    method: 'get'
+  });
+};
+
+/**
+ * 邀请学生加入课程
+ * @param {number} courseId - 课程ID
+ * @param {string} username - 学生学号
+ */
+export const inviteStudent = (courseId, username) => {
+  return request({
+    url: `/course/${courseId}/invite`,
+    method: 'post',
+    data: { username }
+  });
+};
+
+/**
+ * 从课程中移除学生
+ * @param {number} courseId - 课程ID
+ * @param {number} studentId - 学生ID
+ */
+export const removeStudent = (courseId, studentId) => {
+  return request({
+    url: `/course/${courseId}/students/${studentId}`,
+    method: 'delete'
+  });
+};
+
 // 删除课程
 export function deleteCourse(courseId) {
   return request({

@@ -38,24 +38,31 @@
                 clearable
               />
               <el-button type="primary" :icon="Plus" @click="joinCourseDialogVisible = true">加入课程</el-button>
+              <el-button :icon="Refresh" circle @click="handleRefreshCourses" :loading="coursesLoading"></el-button>
             </div>
           </div>
           
-          <el-row :gutter="20" v-if="filteredCourses.length > 0">
-            <el-col :span="6" v-for="course in filteredCourses" :key="course.id">
-              <el-card class="course-card" :body-style="{ padding: '0px' }" @click="handleCourseClick(course.id)">
-                <img :src="course.coverImage" class="course-image">
-                <div class="course-info">
-                  <h3>{{ course.title }}</h3>
-                    教学老师：<h4 class="teacher" style="display: inline;">{{ course.teacherName }}</h4>
-                </div>
-                <div class="card-footer">
-                    <el-button type="primary" link class="action-btn">进入学习</el-button>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-          <el-empty v-else description="暂无课程" />
+          <div v-if="coursesLoading" class="loading-container">
+            <el-skeleton :rows="5" animated />
+          </div>
+          
+          <template v-else>
+            <el-row :gutter="20" v-if="filteredCourses.length > 0">
+              <el-col :span="6" v-for="course in filteredCourses" :key="course.id">
+                <el-card class="course-card" :body-style="{ padding: '0px' }" @click="handleCourseClick(course.id)">
+                  <img :src="course.coverImage" class="course-image">
+                  <div class="course-info">
+                    <h3>{{ course.title }}</h3>
+                      教学老师：<h4 class="teacher" style="display: inline;">{{ course.teacherName }}</h4>
+                  </div>
+                  <div class="card-footer">
+                      <el-button type="primary" link class="action-btn">进入学习</el-button>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+            <el-empty v-else description="暂无课程" />
+          </template>
         </div>
 
         <!-- 学习报告 (学生视图) -->
@@ -198,7 +205,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElNotification } from 'element-plus'
-import { Reading, DataLine, Search, Plus, Aim } from '@element-plus/icons-vue'
+import { Reading, DataLine, Search, Plus, Aim, Refresh } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getStudentCourses, joinCourse } from '@/api/course'
 import { getMyReport } from '@/api/report'
@@ -211,7 +218,7 @@ const userStore = useUserStore()
 const activeMenu = ref('courses')
 const searchText = ref('')
 const courses = ref([])
-const coursesLoaded = ref(false)
+const coursesLoading = ref(false)
 const timeRange = ref('week')
 
 const reportData = ref(null);
@@ -245,17 +252,24 @@ onMounted(() => {
   });
 })
 
-const fetchCourses = async () => {
-  if (coursesLoaded.value) return;
+const handleRefreshCourses = () => {
+  fetchCourses(true);
+}
+
+const fetchCourses = async (isRefresh = false) => {
+  if (coursesLoading.value) return;
+  coursesLoading.value = true;
   try {
     const res = await getStudentCourses({ page: 1, size: 10 })
     courses.value = res.list
-    coursesLoaded.value = true;
+    if (isRefresh) {
+      ElMessage.success('课程列表已刷新！');
+    }
   } catch (error) {
     ElMessage.error('获取课程列表失败')
     console.error(error)
   } finally {
-    reportLoading.value = false;
+    coursesLoading.value = false;
   }
 }
 
@@ -344,7 +358,9 @@ const initChart = () => {
 const handleSelect = (key) => {
   activeMenu.value = key
   if (key === 'courses') {
-    fetchCourses();
+    if (courses.value.length === 0) {
+      fetchCourses();
+    }
   } else if (key === 'reports') {
     fetchStudentReport();
   } else if (key === 'ai_playground') {
@@ -364,8 +380,7 @@ const handleJoinCourse = async () => {
     joinCourseDialogVisible.value = false;
     courseCodeInput.value = '';
     // 强制刷新课程列表
-    coursesLoaded.value = false;
-    fetchCourses();
+    await fetchCourses();
   } catch (error) {
     ElMessage.error(error.message || '加入课程失败');
   } finally {

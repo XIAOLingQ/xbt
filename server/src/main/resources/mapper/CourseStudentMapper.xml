@@ -8,4 +8,9 @@
         DELETE FROM course_student WHERE course_id = #{courseId}
     </delete>
 
+    <delete id="deleteByStudentAndCourse">
+        DELETE FROM course_student
+        WHERE course_id = #{courseId} AND student_id = #{studentId}
+    </delete>
+
 </mapper> 

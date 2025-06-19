@@ -25,4 +25,11 @@ public interface CourseStudentMapper {
 
     @Select("SELECT course_id FROM course_student WHERE student_id = #{studentId}")
     List<Long> getCourseIdsByStudentId(Long studentId);
+
+    /**
+     * 删除学生的课程记录
+     * @param courseId 课程ID
+     * @param studentId 学生ID
+     */
+    void deleteByStudentAndCourse(@Param("courseId") Long courseId, @Param("studentId") Long studentId);
 }
