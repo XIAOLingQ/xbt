@@ -152,11 +152,6 @@
           <el-table-column prop="realName" label="姓名" />
           <el-table-column prop="email" label="邮箱" />
           <el-table-column prop="joinTime" label="加入时间" />
-          <el-table-column prop="progress" label="学习进度">
-            <template #default="scope">
-              <el-progress :percentage="scope.row.progress" />
-            </template>
-          </el-table-column>
           <el-table-column label="操作" width="120">
             <template #default="scope">
               <el-button 
