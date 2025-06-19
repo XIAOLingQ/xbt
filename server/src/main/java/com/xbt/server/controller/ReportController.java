@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
 public class ReportController {
-
     private final ReportService reportService;
-
     @GetMapping("/student/me")
     public Result<StudentReportVO> getMyStudentReport() {
         Long studentId = AuthUtils.getCurrentUserId();
