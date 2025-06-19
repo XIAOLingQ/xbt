@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbt.server.mapper.CourseStudentMapper">
+
+    <delete id="deleteByCourseId">
+        DELETE FROM course_student WHERE course_id = #{courseId}
+    </delete>
+
+    <delete id="deleteByStudentAndCourse">
+        DELETE FROM course_student
+        WHERE course_id = #{courseId} AND student_id = #{studentId}
+    </delete>
+
+</mapper> 

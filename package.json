@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "marked": "^15.0.12"
+    "@stomp/stompjs": "^7.1.1",
+    "sockjs-client": "^1.6.1"
   }
 }

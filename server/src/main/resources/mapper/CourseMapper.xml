@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbt.server.mapper.CourseMapper">
+
+    <!-- 插入课程，并返回自增ID -->
+    <insert id="insert" parameterType="com.xbt.server.pojo.entity.Course" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO course (title, description, cover_image, course_code, teacher_id, status, created_at, updated_at)
+        VALUES (#{title}, #{description}, #{coverImage}, #{courseCode}, #{teacherId}, #{status}, NOW(), NOW())
+    </insert>
+
+    <select id="findAll" resultType="com.xbt.server.pojo.entity.Course">
+        SELECT * FROM course ORDER BY created_at DESC
+    </select>
+
+    <!-- 更新课程信息 -->
+    <update id="update" parameterType="com.xbt.server.pojo.entity.Course">
+        UPDATE course
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="coverImage != null">cover_image = #{coverImage},</if>
+            <if test="status != null">status = #{status},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID查找课程 -->
+    <select id="findById" resultType="com.xbt.server.pojo.entity.Course">
+        SELECT * FROM course WHERE id = #{id}
+    </select>
+    
+    <!-- 根据课程码查找课程 -->
+    <select id="getByCourseCode" resultType="com.xbt.server.pojo.entity.Course">
+        SELECT * FROM course WHERE course_code = #{courseCode}
+    </select>
+    
+    <!-- 删除课程 -->
+    <delete id="deleteById">
+        DELETE FROM course WHERE id = #{id}
+    </delete>
+
+    <!-- 查询学生是否已加入课程 -->
+    <select id="findStudentInCourse" resultType="com.xbt.server.pojo.entity.CourseStudent">
+        SELECT * FROM course_student WHERE course_id = #{courseId} AND student_id = #{studentId} LIMIT 1
+    </select>
+
+    <!-- 添加学生到课程 -->
+    <insert id="addStudentToCourse" parameterType="com.xbt.server.pojo.entity.CourseStudent">
+        INSERT INTO course_student (course_id, student_id, join_time, status, created_at, updated_at)
+        VALUES (#{courseId}, #{studentId}, NOW(), 1, NOW(), NOW())
+    </insert>
+
+    <!-- 获取教师的课程列表 -->
+    <select id="getCoursesByTeacherId" resultType="com.xbt.server.pojo.vo.TeacherCourseVO">
+        SELECT
+            c.id,
+            c.title,
+            c.description,
+            c.cover_image as coverImage,
+            c.course_code as courseCode,
+            c.status,
+            (SELECT COUNT(*) FROM course_student cs WHERE cs.course_id = c.id) as studentCount
+        FROM
+            course c
+        WHERE
+            c.teacher_id = #{teacherId}
+        ORDER BY
+            c.created_at DESC
+    </select>
+
+    <!-- 获取学生的课程列表 -->
+    <select id="getCoursesByStudentId" resultType="com.xbt.server.pojo.vo.StudentCourseVO">
+        SELECT
+            c.id,
+            c.title,
+            c.description,
+            c.cover_image as coverImage,
+            u.real_name as teacherName,
+            0 as progress -- 学习进度暂时写死为0，后续需要复杂计算
+        FROM
+            course_student cs
+        JOIN
+            course c ON cs.course_id = c.id
+        JOIN
+            user u ON c.teacher_id = u.id
+        WHERE
+            cs.student_id = #{studentId}
+        ORDER BY
+            cs.join_time DESC
+    </select>
+
+    <select id="countCoursesByStudentId" resultType="int">
+        SELECT count(*) FROM course_student WHERE student_id = #{studentId}
+    </select>
+
+    <!-- 获取课程的学生列表 -->
+    <select id="getCourseStudents" resultType="com.xbt.server.pojo.vo.StudentCourseVO">
+        SELECT 
+            u.id,
+            u.username,
+            u.real_name as realName,
+            u.email,
+            cs.join_time as joinTime,
+            cs.progress
+        FROM 
+            course_student cs
+            JOIN user u ON cs.student_id = u.id
+        WHERE 
+            cs.course_id = #{courseId}
+            AND cs.status = 1
+            AND u.role = 1
+        ORDER BY 
+            cs.join_time DESC
+    </select>
+
+    <select id="getCourseChaptersAndSections" resultType="com.xbt.server.pojo.entity.CourseVideo">
+        SELECT * FROM course_video
+        WHERE course_id = #{courseId}
+        ORDER BY order_num ASC
+    </select>
+
+    <select id="getCompletedVideoIdsByStudent" resultType="long">
+        SELECT svp.video_id
+        FROM student_video_progress svp
+        JOIN course_video cv ON svp.video_id = cv.id
+        WHERE svp.student_id = #{studentId} AND cv.course_id = #{courseId}
+    </select>
+
+</mapper> 
